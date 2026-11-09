@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>AI-Aréna Web v1.13.0</title>
+<style>
+:root{--bg:#1b1d1f;--bar:#111;--panel:#262a2d;--head:#33383c;--fg:#e8efe0;--mut:#9aa5ab;--acc:#4fc3f7;--ok:#2e7d32;--err:#ef5350;--line:#3d4348;--echo:#81d4fa;--code:#15181a;--in:#202325}
+:root[data-theme=light]{--bg:#eceff1;--bar:#fff;--panel:#fff;--head:#e3e8eb;--fg:#15191c;--mut:#5d6b73;--acc:#0b6bb5;--ok:#2e7d32;--err:#c62828;--line:#cfd6db;--echo:#0055cc;--code:#f1f4f6;--in:#fafafa}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--head);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:active{filter:brightness(1.15)}
+button.danger{color:var(--err)}
+.bar{display:block;background:var(--bar);padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:17px}
+.brand small{color:var(--mut);font-weight:400}
+.bar-btns{display:flex;gap:6px;margin-top:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.bar-btns::-webkit-scrollbar{display:none}
+.bar-btns button{flex:1 0 46px;min-width:46px;min-height:40px;padding:0;font-size:18px}
+.bar-btns button svg{display:block;margin:auto}
+.navrow{display:flex;align-items:center;gap:6px;padding:0 0 2px;flex:0 0 auto}
+.chips{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0;padding:8px 10px 4px}
+.chips::-webkit-scrollbar{display:none}
+.chip{position:relative;flex:0 0 auto;width:52px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--head);border:1px solid var(--line);border-radius:8px;font-size:22px;cursor:pointer}
+img.pi{background:#fff;padding:3px;box-sizing:border-box}
+.pi{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:#fff;font:700 14px/1 system-ui,sans-serif;letter-spacing:-.3px;object-fit:contain}
+.chip.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.tier{flex:0 0 auto;border-radius:999px;font-weight:700;padding:5px 12px;font-size:13px;white-space:nowrap;color:#fff}
+.tier.strong{background:#6a1b9a;border-color:#6a1b9a}
+.tier.cheap{background:#00695c;border-color:#00695c}
+.brow .tier{border-radius:8px;min-width:40px;min-height:40px;padding:0;font-size:18px}
+.mlbl{font-size:12px;color:var(--mut);margin-bottom:-2px}
+.deck{flex:1;min-height:0;display:flex;gap:8px;padding:4px 8px 8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.panel{flex:0 0 100%;scroll-snap-align:center;display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media (min-width:900px){.panel{flex:1 0 380px;scroll-snap-align:start}}
+.ic.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.src{font-size:12px;color:var(--mut);margin:-6px 0 12px}
+.src ol{margin:2px 0 0;padding-left:20px}
+.src a{color:var(--acc);overflow-wrap:anywhere}
+.fback{display:none}
+html.full,body.full{height:auto}
+body.full{display:block;overflow:auto}
+body.full .bar,body.full .navrow,body.full .composer{display:none}
+body.full .deck{display:block;overflow:visible;padding:8px}
+body.full .panel{display:none}
+body.full .panel.fp{display:block;overflow:visible}
+body.full .panel.fp .pbody{overflow:visible}
+body.full .fback{display:block;margin:4px 8px 24px;width:calc(100% - 16px);padding:12px}
+.phead{display:flex;align-items:center;gap:6px;background:var(--head);padding:6px 8px;flex:0 0 auto}
+.pname{font-weight:700;color:var(--acc)}
+.pmodel{color:var(--mut);font-size:12px;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.psend{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;padding:4px 4px 4px 10px;cursor:pointer}
+.psend input{width:24px;height:24px;margin:0;accent-color:var(--ok);cursor:pointer}
+.panel.off .pbody{opacity:.5}
+.panel.soff .msg,.panel.soff .prog,.panel.soff .meta,.panel.soff .src{opacity:.5}
+.chip.off{opacity:.45}
+.loaded{background:var(--head);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 12px;font-size:13px;color:var(--mut)}
+.pmode{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--mut)}
+.phead button{padding:2px 8px;font-size:14px}
+.pbody{flex:1;min-height:0;overflow-y:auto;padding:12px;position:relative;-webkit-overflow-scrolling:touch}
+.prog{margin:0 0 12px;font-size:14px;line-height:1.9}
+.prog .mut{color:var(--mut)}
+.hint{color:var(--mut);text-align:center;margin-top:20px;font-size:14px}
+.msg.user{color:var(--echo);font-style:italic;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px;overflow-wrap:anywhere}
+.msg.user .fl{font-size:12px;color:var(--mut);font-style:normal;margin-top:4px}
+.meta{color:var(--mut);font-size:11px;margin:6px 0 14px}
+.err{color:var(--err);white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0}
+.wait{color:var(--mut);margin:8px 0}
+.dots{display:inline-block;width:12px;height:12px;border:2px solid var(--mut);border-top-color:transparent;border-radius:50%;vertical-align:-2px;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.md{overflow-wrap:anywhere}
+.md p{margin:0 0 10px}
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{margin:14px 0 6px;line-height:1.25}
+.md h1{font-size:1.35em}.md h2{font-size:1.2em}.md h3,.md h4,.md h5,.md h6{font-size:1.07em}
+.md ul,.md ol{margin:0 0 10px;padding-left:22px}
+.md blockquote{margin:0 0 10px;padding:2px 10px;border-left:3px solid var(--line);color:var(--mut)}
+.md hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+.md code{background:var(--code);border-radius:4px;padding:1px 5px;font:13px ui-monospace,Consolas,monospace}
+.md .code{position:relative;margin:0 0 10px}
+.md .code pre{margin:0;background:var(--code);border-radius:8px;padding:10px;overflow-x:auto}
+.md .code pre code{background:none;padding:0;white-space:pre}
+.md .code .cp{position:absolute;top:4px;right:4px;font-size:11px;padding:1px 7px;opacity:.85}
+.md table{border-collapse:collapse;margin:0 0 10px;display:block;overflow-x:auto}
+.md th,.md td{border:1px solid var(--line);padding:4px 8px;text-align:left;min-width:92px;overflow-wrap:normal;word-break:normal;vertical-align:top}
+.md a{color:var(--acc)}
+.composer{flex:0 0 auto;background:var(--bar);border-top:1px solid var(--line);padding:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.atts{display:flex;gap:6px;overflow-x:auto;margin-bottom:6px}
+.atts:empty{display:none}
+.att{flex:0 0 auto;display:flex;align-items:center;gap:6px;background:var(--head);border:1px solid var(--line);border-radius:8px;padding:3px 6px;font-size:12px;max-width:200px}
+.att img{width:34px;height:34px;object-fit:cover;border-radius:4px}
+.att span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att button{padding:0 6px;border:0;background:none;font-size:16px}
+.crow{display:flex;flex-direction:column;gap:6px}
+.brow{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.tools{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 0}
+.tools::-webkit-scrollbar{display:none}
+.tools>*{flex:0 0 auto}
+.eff{position:relative}
+.bd{position:absolute;right:2px;bottom:2px;font:700 10px/1 system-ui,sans-serif;font-style:normal;background:var(--ok);color:#fff;border-radius:6px;padding:1px 4px}
+.effopt{display:block;width:100%;text-align:left;margin-bottom:6px;padding:10px 12px}
+.effopt.sel{background:var(--ok);border-color:var(--ok);color:#fff}
+.effopt small{display:block;opacity:.8}
+.modebtn{min-width:40px;min-height:40px;padding:0;font-size:18px;white-space:nowrap}
+.modebtn.m-g{background:#1565c0;border-color:#1565c0;color:#fff}
+.modebtn.m-t{background:#6a1b9a;border-color:#6a1b9a;color:#fff}
+.modebtn.m-k{background:#37474f;border-color:#37474f;color:#fff}
+.brow .send{flex:0 0 auto;margin-left:0;min-width:0;padding:0 9px}
+.irow{display:flex;gap:6px;align-items:flex-end}
+.irow .ic.on{background:var(--err);border-color:var(--err);color:#fff}
+.irow .ic{flex:0 0 auto}
+.crow textarea{flex:1;width:auto;min-width:0;resize:none;max-height:140px;background:var(--in);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.ic{min-width:40px;min-height:40px;font-size:18px}
+.send{min-height:40px;background:var(--ok);border-color:var(--ok);color:#fff;font-weight:700;padding:0 14px}
+.send.stop{background:var(--err);border-color:var(--err)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:8px 14px;border-radius:10px;font-size:13px;max-width:90vw;z-index:50;pointer-events:none}
+dialog{width:min(680px,96vw);max-height:92dvh;padding:0;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--fg)}
+dialog::backdrop{background:#0008}
+.dlg-in{display:flex;flex-direction:column;max-height:92dvh}
+.dlg-body{overflow-y:auto;padding:14px}
+.dlg-foot{display:flex;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.dlg-body h2{margin:0 0 8px}
+.dlg-body h3{margin:16px 0 6px;color:var(--acc)}
+.note{color:var(--mut);font-size:13px;margin:0 0 10px}
+.fld{display:block;margin-bottom:10px}
+.fld>span{display:block;font-size:13px;color:var(--mut);margin-bottom:2px}
+.fld input,.srow select,.sbox select{width:100%;background:var(--in);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.inl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.inl input{flex:1;min-width:0}
+.srow,.sbox{border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;display:grid;gap:6px}
+.sline{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.sline .mv{min-width:36px;min-height:36px;padding:0}
+.sline .chk{flex:1}
+.chk{display:flex;gap:6px;align-items:center}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">⚔️ AI-Aréna <small>Web v1.13.0</small></div>
+  <div class="bar-btns">
+    <button id="bExp" title="Mentés szövegfájlba">⬇</button>
+    <button id="bLoad" title="Mentett beszélgetés (txt) betöltése – minden bekapcsolt AI megkapja a teljes szöveget, és folytathatod a témát">📂</button>
+    <button id="bClear" title="Új beszélgetés (mind)">🗑</button>
+    <button id="bReset" title="Csak az aktuális ablak törlése (újraindítása)">↺</button>
+    <button id="bCopy" title="Az aktuális ablak utolsó válaszának másolása">📋</button>
+    <button id="bFull" title="Teljes oldalas nézet az aktuális ablakról (görgetős képernyőképhez)">⛶</button>
+    <button id="bSet" title="Beállítások" aria-label="Beállítások"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
+    <button id="bTheme" title="Világos / sötét">🌓</button>
+  </div>
+</header>
+<div class="navrow"><nav id="chips" class="chips"></nav></div>
+<main id="deck" class="deck"></main>
+<footer class="composer">
+  <div id="atts" class="atts"></div>
+  <div class="crow">
+    <div class="irow">
+      <textarea id="inp" rows="1" placeholder="Kérdés…"></textarea>
+      <button id="bMic" class="ic" type="button" title="Diktálás magyarul – koppints, beszélj, újra koppintva leáll">🎤</button>
+      <button id="bSpk" class="ic" type="button" title="Az aktuális ablak utolsó válaszának felolvasása – újra koppintva leáll">🔊</button>
+    </div>
+    <div class="brow">
+      <div class="tools">
+        <button id="bAtt" class="ic" title="Kép / PDF / szövegfájl csatolása">📎</button>
+        <button id="bWeb" class="ic" type="button" title="Webes keresés (a küldéskor minden AI-nál)">🌐</button>
+        <button id="bMode" class="modebtn" type="button"></button>
+        <button id="bTeach" class="ic" type="button">🎓</button>
+        <button id="bTier" class="tier cheap" type="button"></button>
+        <button id="bEff" class="ic eff" type="button"></button>
+      </div>
+      <button id="bSend" class="send">Küldés</button>
+    </div>
+  </div>
+  <input id="loadFile" type="file" hidden accept=".txt,text/plain">
+  <input id="file" type="file" hidden multiple accept="image/*,application/pdf,.pdf,.txt,.md,.csv,.json,.py,.js,.ts,.html,.css,.xml,.yml,.yaml,.ini,.log,.sql,.bat,.sh,.cfg,.toml">
+</footer>
+<button id="fBack" class="fback" type="button">↩ Vissza a lapozható nézethez</button>
+<dialog id="effDlg" style="width:min(380px,94vw)"><div class="dlg-in"><div class="dlg-body"><h2>🎚 Claude effort</h2><p class="note">Azt szabályozza, mennyit gondolkodik és dolgozik a Claude a válaszon. Minden módban és mindkét modellszinten érvényes. Csak a Claude-ra hat. Magasabb szint: alaposabb, de lassabb és drágább válasz.</p><div id="effList"></div></div><div class="dlg-foot"><button type="button" id="effClose">Bezár</button></div></div></dialog>
+<dialog id="pinDlg" style="width:min(340px,92vw)"><div class="dlg-in"><div class="dlg-body"><h2>🔒 PIN</h2><p id="pinMsg" class="note"></p><input id="pinIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" style="width:100%;font-size:26px;letter-spacing:10px;text-align:center;background:var(--in);border:1px solid var(--line);border-radius:10px;padding:8px"><p id="pinErr" class="note" style="color:var(--err);min-height:1.3em;margin:8px 0 0"></p></div><div class="dlg-foot"><button type="button" id="pinCancel">Mégse</button><button type="button" id="pinOk" class="send">OK</button></div></div></dialog>
+<dialog id="dlg"><div class="dlg-in"><div id="dlgBody" class="dlg-body"></div><div class="dlg-foot"><button type="button" id="dCancel">Mégse</button><button type="button" id="dSave" class="send">Mentés</button></div></div></dialog>
+
+<script>
+(() => {
+'use strict';
+
+/* ============ Alapok ============ */
+const LS_KEY = 'miarena.v1';
+const MAX_SLOTS = 9;
+const MAX_FILES = 6;
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const MAX_TEXT_CHARS = 200000;
+const TEXT_EXT = ['txt','md','csv','json','py','js','ts','html','css','xml','yml','yaml','ini','log','sql','bat','sh','cfg','toml'];
+
+const MODES = {
+  'Gyors': 'Segítőkész asszisztens vagy.',
+  'Gondolkodó': 'Segítőkész asszisztens vagy. A választ így építsd fel: az első 2-3 mondatban tömören, közvetlenül add meg a lényeget (a kérdésre adott választ), utána következzen a részletesebb, jól tagolt kifejtés (rövid alcímek, felsorolások, példák, ahol segítenek). Ne írd le, hogyan jutottál a válaszhoz, ne meséld a gondolatmenetedet. Ha valamiben bizonytalan vagy, a végén jelezd. A kérdés nyelvén válaszolj.',
+  'Kódoló': 'Szakértő programozó vagy. Csak tiszta kódot írj!'
+};
+
+/* Új szolgáltató felvételéhez: ide kerül egy új bejegyzés + egy call/list függvény */
+const PROVIDERS = {
+  gemini:    { label: 'Gemini', keyLabel: 'Gemini API-kulcs', strong: 'gemini-3.1-pro-preview', cheap: 'gemini-3.8-flash', sum: 'gemini-3.8-flash',
+               suggest: ['gemini-3.1-pro-preview', 'gemini-4-argon', 'gemini-pro-latest', 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'],
+               call: callGemini, list: listGemini },
+  openai:    { label: 'GPT',    keyLabel: 'OpenAI (GPT) API-kulcs', strong: 'gpt-6-astra', cheap: 'gpt-6-luna', sum: 'gpt-6-luna',
+               suggest: ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.5-pro', 'gpt-5.5'],
+               call: callOpenAI, list: listOpenAI },
+  anthropic: { label: 'Claude', keyLabel: 'Anthropic (Claude) API-kulcs', strong: 'claude-fable-5-1', cheap: 'claude-haiku-5-5', sum: 'claude-sonnet-5-5',
+               suggest: ['claude-fable-5-1', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
+               call: callAnthropic, list: listAnthropic },
+  meta:      { label: 'Meta',   keyLabel: 'Meta AI API-kulcs', strong: 'muse-wonder-1.0', cheap: 'muse-spark-1.3', sum: 'muse-spark-1.3',
+               suggest: ['muse-wonder-1.0', 'muse-spark-1.3', 'muse-spark-1.2', 'muse-spark-1.1'],
+               call: callMeta, list: listMeta },
+  xai:       { label: 'Grok',   keyLabel: 'xAI (Grok) API-kulcs', strong: 'grok-4.7', cheap: 'grok-4.3', sum: 'grok-4.3',
+               suggest: ['grok-4.7', 'grok-4.6', 'grok-4.5', 'grok-4.3'],
+               call: callGrok, list: listGrok }
+};
+const MODE_ICON = { 'Gyors': '⚡', 'Gondolkodó': '🧠', 'Kódoló': '💻' };
+const MODE_CLS = { 'Gyors': 'm-g', 'Gondolkodó': 'm-t', 'Kódoló': 'm-k' };
+const MODE_INFO = { 'Gyors': 'rövid, segítőkész válasz', 'Gondolkodó': 'először a lényeg, utána részletesen', 'Kódoló': 'tiszta kód' };
+const SUM_SYS = 'Összefoglaló asszisztens vagy. Egy kérdést és több MI válaszát kapod. Magyarul, tömören és jól tagoltan írd meg: 1) Közös rész: miben értenek egyet. 2) Eltérések: melyik MI mit mond másképp (nevezd meg őket). 3) Ellenőrizendő: ahol a tények vagy számok eltérnek, vagy valami bizonytalan. 4) Javasolt végső válasz a kérdésre, 2-5 mondatban. Ne ismételd meg a teljes válaszokat, és ne találj ki olyan tényt, ami nincs a válaszokban.';
+const MODE_HINT = { 'Gondolkodó': 'Gondolkodó (lényeg, majd részletek)' };
+const EFFORTS = [
+  ['auto', 'Alapértelmezett', 'a modell saját beállítása (semmit sem küld)'],
+  ['low', 'Alacsony', 'gyors és olcsó'],
+  ['medium', 'Közepes', 'kiegyensúlyozott'],
+  ['high', 'Magas', 'alaposabb, lassabb'],
+  ['xhigh', 'Nagyon magas', 'sokat gondolkodik, drága'],
+  ['max', 'Maximum', 'leglassabb és legdrágább']
+];
+const EFF_MIN_TOKENS = { high: 16000, xhigh: 32000, max: 32000 };   // a gondolkodás is beleszámít a válaszhosszba
+const TEACH_SYS = 'Tanár módban vagy: a felhasználó tanul (lehet, hogy gyerek). Magyarul, egyszerű, rövid mondatokkal, lépésenként magyarázz. Elsőként vezesd rá a tanulót a megoldásra kérdésekkel és apró tippekkel, ne add meg azonnal a kész megoldást. Ha kéri vagy elakad, mutasd meg a megoldást lépésről lépésre, és magyarázd el, miért úgy. Ellenőrizd, hogy érti-e, és dicsérd a jó lépéseket.';
+const SEARCH_HINT = ' Ha a kérdéshez friss vagy ellenőrizendő információ kell, használd a webes keresést.';
+const TIERS = { strong: { icon: '💪', label: 'Erős' }, cheap: { icon: '💰', label: 'Olcsó' } };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+/* ============ Beállítások tárolása ============ */
+function slotDefault(id, provider) {
+  const P = PROVIDERS[provider];
+  return { id, provider, models: { strong: P.strong, cheap: P.cheap }, mode: 'Gyors', active: true };
+}
+function defaults() {
+  return {
+    theme: null,
+    tier: 'cheap',
+    search: false,
+    sum: true,
+    effort: 'auto',
+    teacher: false,
+    bal: { gemini: null, openai: null, anthropic: null, meta: null, xai: null },
+    spend: { day: '', d: 0, month: '', m: 0 },
+    prices: {},
+    lock: { hash: '', salt: '', limit: 10, until: 0, fails: 0 },
+    usage: { day: '', n: 0, unlocks: 0 },
+    sumAI: { provider: 'anthropic', model: 'claude-sonnet-5-5' },
+    mode: 'Gyors',
+    about: '',
+    keys: { gemini: '', openai: '', anthropic: '', meta: '', xai: '' },
+    maxTokens: 4096,
+    models: {},
+    nextId: 6,
+    xaiAdded: true,
+    slots: [slotDefault(1, 'openai'), slotDefault(2, 'anthropic'), slotDefault(3, 'gemini'), slotDefault(4, 'meta'), slotDefault(5, 'xai')]
+  };
+}
+function loadSettings() {
+  const d = defaults();
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
+    if (raw && typeof raw === 'object') {
+      if (raw.theme) d.theme = raw.theme;
+      if (raw.tier === 'strong' || raw.tier === 'cheap') d.tier = raw.tier;
+      d.search = raw.search === true;
+      d.sum = raw.sum !== false;
+      if (EFFORTS.some(x => x[0] === raw.effort)) d.effort = raw.effort;
+      d.teacher = raw.teacher === true;
+      if (raw.bal && typeof raw.bal === 'object') Object.keys(d.bal).forEach(k => { if (typeof raw.bal[k] === 'number' && isFinite(raw.bal[k])) d.bal[k] = raw.bal[k]; });
+      if (raw.spend && typeof raw.spend === 'object') d.spend = { day: String(raw.spend.day || ''), d: +raw.spend.d || 0, month: String(raw.spend.month || ''), m: +raw.spend.m || 0 };
+      if (raw.prices && typeof raw.prices === 'object') Object.keys(raw.prices).forEach(k => { const p = raw.prices[k]; if (Array.isArray(p) && isFinite(+p[0]) && isFinite(+p[1])) d.prices[k] = [+p[0], +p[1]]; });
+      if (raw.lock && typeof raw.lock === 'object') {
+        const L = raw.lock, lim = Math.floor(+L.limit);
+        d.lock = { hash: typeof L.hash === 'string' ? L.hash : '', salt: typeof L.salt === 'string' ? L.salt : '', limit: lim >= 0 && lim <= 999 ? lim : 10, until: +L.until || 0, fails: +L.fails || 0 };
+      }
+      if (raw.usage && typeof raw.usage === 'object') d.usage = { day: String(raw.usage.day || ''), n: Math.max(0, Math.floor(+raw.usage.n) || 0), unlocks: Math.max(0, Math.floor(+raw.usage.unlocks) || 0) };
+      if (raw.sumAI && PROVIDERS[raw.sumAI.provider] && raw.sumAI.model) d.sumAI = { provider: raw.sumAI.provider, model: String(raw.sumAI.model) };
+      if (MODES[raw.mode]) d.mode = raw.mode;
+      else { const fs = Array.isArray(raw.slots) && raw.slots.find(x => x && x.active && MODES[x.mode]); if (fs) d.mode = fs.mode; }
+      if (typeof raw.about === 'string') d.about = raw.about.slice(0, 2000);
+      if (raw.keys) Object.keys(d.keys).forEach(k => { if (typeof raw.keys[k] === 'string') d.keys[k] = cleanKey(raw.keys[k]); });
+      if (raw.maxTokens) d.maxTokens = +raw.maxTokens || 4096;
+      if (raw.models && typeof raw.models === 'object') d.models = raw.models;
+      if (Array.isArray(raw.slots) && raw.slots.length) {
+        d.slots = raw.slots.filter(s => PROVIDERS[s.provider]).map(s => {
+          const P = PROVIDERS[s.provider], m = s.models || {};   // a régi (1.0-s) mentésben nincs "models": ott az ajánlott pár kerül be
+          return { id: +s.id, provider: s.provider,
+                   models: { strong: String(m.strong || P.strong), cheap: String(m.cheap || P.cheap) },
+                   mode: MODES[s.mode] ? s.mode : 'Gyors', active: !!s.active && s.send !== false };   // a régi (1.2–1.7) főképernyős pipa: a kikapcsolt AI most a beállításokban kikapcsolt
+        });
+        if (!d.slots.length) d.slots = defaults().slots;
+        d.nextId = Math.max(d.nextId, raw.nextId || 0, ...d.slots.map(s => s.id + 1));
+        if (raw.xaiAdded !== true) {   // v1.13.0: a Grok egyszer, automatikusan bekerül az 5. ablaknak (ha később törlöd, nem tér vissza)
+          if (!d.slots.some(x => x.provider === 'xai') && d.slots.length < MAX_SLOTS) d.slots.push(slotDefault(d.nextId++, 'xai'));
+          d.xaiAdded = true;
+        }
+      }
+    }
+  } catch (e) {}
+  return d;
+}
+const modelOf = s => (s.models && s.models[S.tier]) || PROVIDERS[s.provider][S.tier];
+const cleanKey = k => String(k || '').replace(/[\s\u00A0\u200B-\u200F\u2028\u2029\u2060\uFEFF]/g, '');
+function saveSettings() { try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch (e) { toast('A beállítások mentése nem sikerült.'); } }
+
+let S = loadSettings();
+const convo = {};                // slotId -> { history:[], view:[] }
+let attachments = [];            // csatolt fájlok a következő küldéshez
+let busy = false;
+let asking = false;
+const skip = new Set();          // a főképernyőn kipipálással kizárt ablakok (csak az aktuális beszélgetésre)
+let controllers = [];
+const getConvo = id => convo[id] || (convo[id] = { history: [], view: [] });
+
+/* ============ Költség- és egyenlegbecslő ============ */
+const PRICES = {   // USD / 1 millió token [bemenet, kimenet]; becslés, a GPT-6 árak nem hivatalos forrásból valók
+  'claude-fable-5-1': [10, 50], 'claude-opus-5-5': [4, 20], 'claude-sonnet-5-5': [2, 10], 'claude-haiku-5-5': [0.10, 0.50],
+  'gemini-3.1-pro-preview': [2, 12], 'gemini-3.5-flash-lite': [0.30, 2.50], 'gemini-3.1-flash-lite': [0.25, 1.50],
+  'gpt-6-astra': [10, 50], 'gpt-6.1-sol': [2, 10], 'gpt-6-sol': [2, 10], 'gpt-6-luna': [0.10, 0.50],
+  'grok-4.7': [2, 6], 'grok-4.6': [2, 6], 'grok-4.5': [2, 6], 'grok-4.3': [1.25, 2.5]   // a Grok-nál a válasz a pontos költséget is tartalmazza (cost_in_usd_ticks), az a pontosabb
+};
+function priceOf(model) {
+  const id = String(model || '').toLowerCase().replace(/^models\//, '').replace(/^gemini\//, '');
+  if (S.prices && S.prices[id]) return S.prices[id];
+  const now = Date.now();
+  if (id === 'gemini-3.8-flash') return now >= Date.UTC(2027, 0, 1) ? [1.50, 7.50] : [0.75, 3.75];
+  if (id === 'gemini-4-argon') return now >= Date.UTC(2026, 11, 1) ? [4, 20] : [2, 10];
+  return PRICES[id] || null;
+}
+function costOf(model, r) {
+  if (typeof r.cost === 'number' && isFinite(r.cost)) return r.cost;   // pontos költség (xAI: tokenek + webkeresés együtt)
+  const p = priceOf(model);
+  if (!p || r.tin == null || r.tout == null) return null;
+  return (r.tin * p[0] + r.tout * p[1]) / 1e6 + (r.fee || 0);
+}
+const comma = x => String(x).replace('.', ',');
+function usd(v) { const a = Math.abs(v); return (v < 0 ? '-' : '') + '$' + comma(a >= 1 ? a.toFixed(2) : a >= 0.01 ? a.toFixed(3) : a >= 0.0001 ? a.toFixed(4) : a.toFixed(6)); }
+function rollSpend() {
+  const n = new Date(), p = x => String(x).padStart(2, '0'), dk = dayKey(), mk = n.getFullYear() + '-' + p(n.getMonth() + 1);
+  if (S.spend.day !== dk) { S.spend.day = dk; S.spend.d = 0; }
+  if (S.spend.month !== mk) { S.spend.month = mk; S.spend.m = 0; }
+}
+function track(provider, model, r) {
+  const c = costOf(model, r);
+  if (c == null) return 'ár ismeretlen';
+  rollSpend(); S.spend.d += c; S.spend.m += c;
+  let bal = '';
+  if (typeof S.bal[provider] === 'number') { S.bal[provider] -= c; bal = ' · maradt ≈ ' + usd(S.bal[provider]); }
+  saveSettings();
+  return '≈ ' + usd(c) + bal;
+}
+
+/* ============ Gyerekzár: napi limit az erős modellekre + PIN ============ */
+const dayKey = () => { const n = new Date(), p = x => String(x).padStart(2, '0'); return n.getFullYear() + '-' + p(n.getMonth() + 1) + '-' + p(n.getDate()); };
+const lockActive = () => !!(S.lock && S.lock.hash && S.lock.limit > 0);
+function rollDay() { const d = dayKey(); if (S.usage.day !== d) S.usage = { day: d, n: 0, unlocks: 0 }; }
+const usageCap = () => S.lock.limit * (1 + S.usage.unlocks);
+const usedUp = () => S.usage.n >= usageCap();
+function lockInfo() {
+  if (S.tier !== 'strong' || !lockActive()) return '';
+  rollDay();
+  return ' · ma még ' + Math.max(0, usageCap() - S.usage.n) + ' erős kérdés';
+}
+function randSalt() {
+  try { const a = new Uint8Array(8); crypto.getRandomValues(a); return Array.from(a).map(x => x.toString(16).padStart(2, '0')).join(''); }
+  catch (e) { return Math.random().toString(16).slice(2, 18); }
+}
+async function hashPin(pin, salt) {
+  const data = 'miarena|' + salt + '|' + pin;
+  try {
+    if (window.crypto && crypto.subtle) {
+      const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+      return 's' + Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) {}
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < data.length; i++) { const c = data.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 'f' + (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+}
+const verifyPin = async pin => (await hashPin(pin, S.lock.salt)) === S.lock.hash;
+function askPin(msg) {
+  return new Promise(res => {
+    const d = $('pinDlg'), inp = $('pinIn'), err = $('pinErr');
+    $('pinMsg').textContent = msg; inp.value = ''; err.textContent = '';
+    let done = false;
+    const fin = ok => { if (done) return; done = true; try { d.close(); } catch (e) {} res(ok); };
+    const tryOk = async () => {
+      const wait = Math.ceil((S.lock.until - Date.now()) / 1000);
+      if (wait > 0) { err.textContent = 'Túl sok hibás próba. Várj ' + wait + ' mp-et.'; return; }
+      if (!/^\d{4}$/.test(inp.value)) { err.textContent = 'A PIN 4 számjegy.'; return; }
+      if (await verifyPin(inp.value)) { S.lock.fails = 0; S.lock.until = 0; saveSettings(); fin(true); return; }
+      inp.value = '';
+      S.lock.fails = (S.lock.fails || 0) + 1;
+      if (S.lock.fails >= 3) { S.lock.fails = 0; S.lock.until = Date.now() + 30000; err.textContent = 'Hibás PIN. 3 hibás próba után 30 mp szünet.'; }
+      else err.textContent = 'Hibás PIN.';
+      saveSettings();
+    };
+    $('pinOk').onclick = tryOk;
+    $('pinCancel').onclick = () => fin(false);
+    d.oncancel = ev => { ev.preventDefault(); fin(false); };
+    inp.onkeydown = ev => { if (ev.key === 'Enter') { ev.preventDefault(); tryOk(); } };
+    d.showModal();
+    try { inp.focus(); } catch (e) {}
+  });
+}
+
+/* ============ Kis segédek ============ */
+let toastTimer;
+function toast(msg) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3200);
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('Vágólapra másolva'); return; } catch (e) {}
+  const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('Vágólapra másolva'); } catch (e) { toast('A másolás nem sikerült.'); }
+  ta.remove();
+}
+function applyTheme() {
+  const th = S.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', th);
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = th === 'light' ? '#ffffff' : '#111111';
+}
+
+/* ============ Markdown (biztonságos: előbb escape, utána formázás) ============ */
+// <md>
+function mdInline(s) {
+  const codes = [];
+  s = s.replace(/`([^`\n]+)`/g, (m, c) => { codes.push(c); return '\u0002' + (codes.length - 1) + '\u0002'; });
+  s = s.replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  s = s.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  s = s.replace(/\u0002(\d+)\u0002/g, (m, i) => '<code>' + codes[+i] + '</code>');
+  return s;
+}
+function mdRow(line) {
+  let s = line.trim();
+  if (s.startsWith('|')) s = s.slice(1);
+  if (s.endsWith('|')) s = s.slice(0, -1);
+  return s.split('|').map(c => c.trim());
+}
+function md(src) {
+  const blocks = [];
+  src = String(src || '').replace(/\r/g, '').replace(/```([\w+#.-]*)[ \t]*\n?([\s\S]*?)(```|$)/g, (m, lang, code) => {
+    blocks.push(code.replace(/\n$/, ''));
+    return '\n\u0001' + (blocks.length - 1) + '\u0001\n';
+  });
+  const lines = esc(src).split('\n');
+  const out = [];
+  let para = [], list = null;
+  const flushPara = () => { if (para.length) { out.push('<p>' + mdInline(para.join('<br>')) + '</p>'); para = []; } };
+  const flushList = () => { if (list) { out.push('<' + list.t + '>' + list.items.map(i => '<li>' + mdInline(i) + '</li>').join('') + '</' + list.t + '>'); list = null; } };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    let m;
+    if ((m = line.match(/^\u0001(\d+)\u0001$/))) {
+      flushPara(); flushList();
+      out.push('<div class="code"><button class="cp" type="button">Másol</button><pre><code>' + esc(blocks[+m[1]]) + '</code></pre></div>');
+      continue;
+    }
+    if (!line.trim()) { flushPara(); flushList(); continue; }
+    if ((m = line.match(/^(#{1,6})\s+(.*)$/))) { flushPara(); flushList(); out.push('<h' + m[1].length + '>' + mdInline(m[2]) + '</h' + m[1].length + '>'); continue; }
+    if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) { flushPara(); flushList(); out.push('<hr>'); continue; }
+    if (line.indexOf('|') >= 0 && i + 1 < lines.length && /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/.test(lines[i + 1])) {
+      flushPara(); flushList();
+      const head = mdRow(line);
+      let j = i + 2; const rows = [];
+      while (j < lines.length && lines[j].indexOf('|') >= 0 && lines[j].trim()) { rows.push(mdRow(lines[j])); j++; }
+      out.push('<table><thead><tr>' + head.map(c => '<th>' + mdInline(c) + '</th>').join('') + '</tr></thead><tbody>' +
+        rows.map(r => '<tr>' + r.map(c => '<td>' + mdInline(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table>');
+      i = j - 1; continue;
+    }
+    if ((m = line.match(/^\s*[-*+]\s+(.*)$/))) { flushPara(); if (!list || list.t !== 'ul') { flushList(); list = { t: 'ul', items: [] }; } list.items.push(m[1]); continue; }
+    if ((m = line.match(/^\s*\d+[.)]\s+(.*)$/))) { flushPara(); if (!list || list.t !== 'ol') { flushList(); list = { t: 'ol', items: [] }; } list.items.push(m[1]); continue; }
+    if ((m = line.match(/^&gt;\s?(.*)$/))) { flushPara(); flushList(); out.push('<blockquote>' + mdInline(m[1]) + '</blockquote>'); continue; }
+    flushList();
+    para.push(line.trim());
+  }
+  flushPara(); flushList();
+  return out.join('');
+}
+// </md>
+
+/* ============ Panelek (swipe) ============ */
+const deck = $('deck');
+let io = null;
+
+function viewHtml(view) {
+  if (!view.length) return '<div class="hint">Itt jelenik meg a válasz.</div>';
+  return view.map(v => {
+    switch (v.role) {
+      case 'user': return '<div class="msg user">👤 ' + esc(v.text).replace(/\n/g, '<br>') + (v.files && v.files.length ? '<div class="fl">📎 ' + esc(v.files.join(', ')) + '</div>' : '') + '</div>';
+      case 'wait': return '<div class="wait"><span class="dots"></span> gondolkodik…</div>';
+      case 'ai':   return '<div class="msg ai md">' + md(v.text) + '</div><div class="meta">' + esc(v.meta || '') + '</div>' +
+        (v.sources && v.sources.length ? '<div class="src">🌐 Források:<ol>' + v.sources.map(x => '<li><a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(x.title) + '</a></li>').join('') + '</ol></div>' : '');
+      case 'prog': {
+        const ln = i => (i.state === 'wait' ? '<span class="dots"></span>' : i.state === 'ok' ? '✅' : '❌') + ' <b>' + esc(i.label) + '</b> – ' +
+          (i.state === 'wait' ? 'gondolkodik…' : i.state === 'ok' ? 'kész (' + esc(i.sec) + ' mp)' : 'nem sikerült' + (i.why ? '<div class="mut" style="font-size:13px;margin:2px 0 4px 26px">' + esc(i.why.length > 220 ? i.why.slice(0, 220) + '…' : i.why) + '</div>' : ''));
+        const sm = { idle: '<span class="mut">📝 Az összefoglaló megvárja a válaszokat…</span>', wait: '<span class="dots"></span> <b>Összefoglaló</b> – készül…',
+          done: '✅ <b>Összefoglaló</b> – kész', err: '❌ <b>Összefoglaló</b> – nem sikerült', skip: '⚠️ Összefoglaló kihagyva: legalább két sikeres válasz kell.' };
+        return '<div class="prog">' + v.items.map(i => '<div>' + ln(i) + '</div>').join('') + '<div>' + (sm[v.sum] || '') + '</div></div>';
+      }
+      case 'note': return '<div class="loaded">' + esc(v.text) + '</div>';
+      case 'err':  return '<div class="err">❌ ' + esc(v.text) + '</div>';
+      default: return '';
+    }
+  }).join('');
+}
+function paintBody(id) {
+  const body = deck.querySelector('.panel[data-id="' + id + '"] .pbody');
+  if (!body) return;
+  const c = getConvo(id);
+  body.innerHTML = (id === 'sum' && !S.sum ? '<div class="hint sumnote">📝 Az összefoglalás ki van kapcsolva.<br>(A jobb felső pipával kapcsolhatod be.)</div>' : '') + (id === 'sum' && !S.sum && !c.view.length ? '' : viewHtml(c.view));
+  const users = body.querySelectorAll('.msg.user');
+  if (users.length) body.scrollTop = Math.max(0, users[users.length - 1].offsetTop - 8);
+}
+let curId = null;
+function renderDeck() {
+  deck.innerHTML = '';
+  const act = S.slots.filter(s => s.active);
+  if (!act.length) {
+    deck.innerHTML = '<div class="panel"><div class="pbody"><div class="hint">Nincs aktív ablak. Nyisd meg a ⚙ Beállításokat.</div></div></div>';
+  }
+  {   // az összefoglaló ablak mindig látszik, a jobb felső pipa kapcsolja be / ki
+    const sp = document.createElement('section');
+    sp.className = 'panel' + (S.sum ? '' : ' soff'); sp.dataset.id = 'sum';
+    sp.innerHTML = '<div class="phead"><span class="pname">📝 Összefoglaló</span><span class="pmodel">' + esc(S.sumAI.model) +
+      '</span><label class="psend" title="Kipipálva: a válaszokból összefoglaló készül. Kipipálás nélkül az összefoglalás ki van kapcsolva."><input type="checkbox" data-sum="1"' + (S.sum ? ' checked' : '') + '></label></div><div class="pbody"></div>';
+    deck.appendChild(sp); paintBody('sum');
+  }
+  act.forEach(s => {
+    const p = document.createElement('section');
+    p.className = 'panel' + (skip.has(s.id) ? ' off' : ''); p.dataset.id = s.id;
+    p.innerHTML = '<div class="phead"><span class="pname">' + esc(PROVIDERS[s.provider].label) + '</span><span class="pmodel">' + esc(modelOf(s)) +
+      '</span><span class="pmode">' + esc(S.mode) + '</span><label class="psend" title="Kipipálva: ez az AI megkapja a következő kérdést. Kipipálás nélkül kihagyja."><input type="checkbox" data-sid="' + s.id + '"' + (skip.has(s.id) ? '' : ' checked') + '></label></div><div class="pbody"></div>';
+    deck.appendChild(p);
+    paintBody(s.id);
+  });
+  renderChips();
+  if (io) io.disconnect();
+  io = new IntersectionObserver(es => {
+    es.forEach(e => { if (e.isIntersecting && e.intersectionRatio >= 0.6) setActiveChip(e.target.dataset.id); });
+  }, { root: deck, threshold: [0.6] });
+  deck.querySelectorAll('.panel[data-id]').forEach(p => io.observe(p));
+}
+/* Szolgáltató-ikonok: saját, egyszerű jelek (színes négyzet + rövidítés). Gyári logó beszerzése esetén az img mezőbe kerülhet a kép (data: vagy relatív webcím). */
+const PICON = {
+  gemini: { t: 'Ge', c: '#3b6fd8', img: 'data:image/png;base64,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' },
+  openai: { t: 'GP', c: '#10a37f', img: 'data:image/png;base64,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' },
+  meta: { t: 'Me', c: '#0866ff', img: 'data:image/png;base64,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' },
+  xai: { t: 'Gr', c: '#000000', img: 'data:image/png;base64,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' },
+  anthropic: { t: 'Cl', c: '#c96442', img: 'data:image/png;base64,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' }
+};
+function iconHtml(p) {
+  const i = PICON[p];
+  if (!i) return '<span class="pi" style="background:#607d8b">' + esc(PROVIDERS[p].label.slice(0, 2)) + '</span>';
+  return i.img ? '<img class="pi" alt="" src="' + esc(i.img) + '">' : '<span class="pi" style="background:' + i.c + '">' + i.t + '</span>';
+}
+function renderChips() {
+  $('chips').innerHTML = '<div class="chip' + (S.sum ? '' : ' off') + '" data-id="sum" title="Összefoglaló · ' + esc(S.sumAI.model) + (S.sum ? '' : ' (kikapcsolva)') + '"><span class="pe">📝</span></div>' + S.slots.filter(s => s.active).map(s =>
+    '<div class="chip' + (skip.has(s.id) ? ' off' : '') + '" data-id="' + s.id + '" title="' + esc(PROVIDERS[s.provider].label + ' · ' + modelOf(s)) + '">' + iconHtml(s.provider) + '</div>').join('');
+  if (curId != null) setActiveChip(curId);
+}
+function updateTierBtn() {
+  const b = $('bTier'), t = TIERS[S.tier];
+  b.textContent = t.icon;
+  b.className = 'tier ' + S.tier;
+  b.title = t.label + ' modellek (koppints a váltáshoz: 💰 olcsó ⇄ 💪 erős)';
+  b.setAttribute('aria-label', t.label + ' modellek');
+}
+function updateLabels() {   // váltáskor csak a feliratok frissülnek, a panelek és a válaszok maradnak
+  S.slots.filter(s => s.active).forEach(s => {
+    const el = deck.querySelector('.panel[data-id="' + s.id + '"] .pmodel');
+    if (el) el.textContent = modelOf(s);
+  });
+  renderChips(); updateTierBtn();
+}
+function setActiveChip(id) {
+  curId = String(id);
+  document.querySelectorAll('#chips .chip').forEach(c => {
+    const on = c.dataset.id === curId;
+    c.classList.toggle('on', on);
+    if (on) { try { c.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }
+  });
+}
+$('chips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  const p = deck.querySelector('.panel[data-id="' + c.dataset.id + '"]');
+  setActiveChip(c.dataset.id);
+  if (p) p.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+});
+deck.addEventListener('change', e => {
+  const cb = e.target.closest('.psend input'); if (!cb) return;
+  if (cb.dataset.sum !== undefined) {
+    S.sum = cb.checked; saveSettings();
+    const sp = cb.closest('.panel'); if (sp) sp.classList.toggle('soff', !S.sum);
+    paintBody('sum'); renderChips();
+    toast(S.sum ? '📝 Összefoglaló BE: ' + PROVIDERS[S.sumAI.provider].label + ' · ' + S.sumAI.model : '📝 Összefoglaló KI');
+    return;
+  }
+  const id = +cb.dataset.sid;
+  if (cb.checked) skip.delete(id); else skip.add(id);
+  const p = cb.closest('.panel'); if (p) p.classList.toggle('off', !cb.checked);
+  renderChips();
+  const sl = S.slots.find(x => x.id === id);
+  toast((cb.checked ? '✅ ' : '⏸ ') + (sl ? PROVIDERS[sl.provider].label : '') + (cb.checked ? ' újra kap kérdést' : ' kihagyva a következő kérdéseknél'));
+});
+deck.addEventListener('click', e => {
+  const cp = e.target.closest('.cp');
+  if (cp) { const pre = cp.parentElement.querySelector('pre'); if (pre) copyText(pre.textContent); return; }
+});
+function curPanelId() {
+  if (curId != null && deck.querySelector('.panel[data-id="' + curId + '"]')) return curId;
+  const p = deck.querySelector('.panel[data-id]'); return p ? p.dataset.id : null;
+}
+$('bCopy').addEventListener('click', () => {
+  const id = curPanelId(); if (id == null) return;
+  const last = [...getConvo(id).view].reverse().find(v => v.role === 'ai');
+  if (last) copyText(last.text); else toast('Ebben az ablakban még nincs válasz.');
+});
+$('bFull').addEventListener('click', () => { const id = curPanelId(); if (id != null) setFull(id); });
+$('bReset').addEventListener('click', () => {
+  const id = curPanelId(); if (id == null) return;
+  convo[id] = { history: [], view: [] }; paintBody(id); toast('Ablak újraindítva');
+});
+
+/* Teljes oldalas nézet: normál görgetésű oldal, hogy a telefon görgetős képernyőképe működjön */
+function setFull(id) {
+  const on = id != null;
+  document.documentElement.classList.toggle('full', on); document.body.classList.toggle('full', on);
+  deck.querySelectorAll('.panel[data-id]').forEach(p => p.classList.toggle('fp', on && p.dataset.id === String(id)));
+  if (on) { window.scrollTo(0, 0); return; }
+  const p = deck.querySelector('.panel[data-id="' + curId + '"]');
+  if (p) { try { p.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }
+}
+$('fBack').addEventListener('click', () => setFull(null));
+
+/* ============ Csatolmányok ============ */
+function readB64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1] || '');
+    r.onerror = () => rej(new Error('Nem sikerült beolvasni: ' + file.name));
+    r.readAsDataURL(file);
+  });
+}
+async function processImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('Nem megnyitható kép: ' + file.name)); img.src = url; });
+    const max = 1280, w = img.naturalWidth, h = img.naturalHeight, sc = Math.min(1, max / Math.max(w, h));
+    const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(w * sc)); cv.height = Math.max(1, Math.round(h * sc));
+    const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    const dataUrl = cv.toDataURL('image/jpeg', 0.85);
+    return { kind: 'image', name: file.name || 'kep.jpg', mime: 'image/jpeg', b64: dataUrl.split(',')[1], thumb: dataUrl };
+  } finally { URL.revokeObjectURL(url); }
+}
+async function addFiles(list) {
+  for (const f of Array.from(list)) {
+    if (attachments.length >= MAX_FILES) { toast('Legfeljebb ' + MAX_FILES + ' fájl csatolható.'); break; }
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    try {
+      if (f.type.startsWith('image/')) attachments.push(await processImage(f));
+      else if (f.type === 'application/pdf' || ext === 'pdf') {
+        if (f.size > MAX_PDF_BYTES) { toast(f.name + ': a PDF túl nagy (max. 10 MB).'); continue; }
+        attachments.push({ kind: 'pdf', name: f.name, mime: 'application/pdf', b64: await readB64(f) });
+      } else if (f.type.startsWith('text/') || TEXT_EXT.includes(ext)) {
+        let t = await f.text();
+        if (t.length > MAX_TEXT_CHARS) { t = t.slice(0, MAX_TEXT_CHARS) + '\n[…a fájl többi része levágva]'; toast(f.name + ': hosszú fájl, levágtam.'); }
+        attachments.push({ kind: 'text', name: f.name, text: t });
+      } else toast(f.name + ': ez a fájltípus nem támogatott.');
+    } catch (e) { toast(e.message || 'Hiba a fájl feldolgozásakor.'); }
+  }
+  renderAtts();
+}
+function renderAtts() {
+  $('atts').innerHTML = attachments.map((a, i) =>
+    '<div class="att">' + (a.kind === 'image' ? '<img alt="" src="' + a.thumb + '">' : '<b>' + (a.kind === 'pdf' ? 'PDF' : 'TXT') + '</b>') +
+    '<span>' + esc(a.name) + '</span><button type="button" data-i="' + i + '" title="Eltávolítás">×</button></div>').join('');
+}
+$('atts').addEventListener('click', e => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  attachments.splice(+b.dataset.i, 1); renderAtts();
+});
+$('bAtt').addEventListener('click', () => $('file').click());
+
+/* ============ Mentett beszélgetés betöltése: a teljes szöveg előzményként megy minden aktív AI-nak ============ */
+const LOAD_MAX = 400000;
+const LOAD_INTRO = '[Egy korábban elmentett beszélgetést töltöttem be. Az alábbi a teljes tartalma, benne több AI kérdésekre adott válaszaival. Ez a beszélgetés témája és előzménye: vedd figyelembe, és ebből folytassuk a következő kérdéseimmel.]\n\n';
+$('bLoad').addEventListener('click', () => {
+  if (busy) { toast('Várd meg a válaszokat, vagy nyomd meg a Leállít gombot.'); return; }
+  $('loadFile').click();
+});
+$('loadFile').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  let t = '';
+  try { t = (await f.text()).replace(/\r/g, '').trim(); } catch (err) { toast('Nem sikerült beolvasni a fájlt.'); return; }
+  if (!/KÉRDÉS:/.test(t) || !/VÁLASZ/.test(t)) { toast('Ez nem az AI-Aréna által mentett beszélgetésnek tűnik (nincs benne KÉRDÉS / VÁLASZ).'); return; }
+  if (t.length > LOAD_MAX) { toast('A fájl túl hosszú (legfeljebb ' + Math.round(LOAD_MAX / 1000) + ' ezer karakter tölthető be).'); return; }
+  const act = S.slots.filter(s => s.active);
+  if (!act.length) { toast('Nincs aktív ablak (⚙ Beállítások).'); return; }
+  const kt = Math.max(1, Math.round(t.length / 3000));
+  if (!confirm('Betöltöm: ' + f.name + '\n\n≈ ' + kt + ' ezer token. A jelenlegi beszélgetés törlődik, és mind a ' + act.length + ' bekapcsolt AI megkapja a teljes szöveget előzményként. Ez a szöveg minden további kérdésnél újra elmegy az AI-knak, ezért hosszú fájlnál drágább lehet. Folytassam?')) return;
+  Object.keys(convo).forEach(key => delete convo[key]);
+  skip.clear();
+  const note = '📂 Betöltött beszélgetés: ' + f.name + ' (≈ ' + kt + ' ezer token). Az AI minden további kérdésnél látja, a téma itt folytatható.';
+  act.forEach(s => {
+    const c = getConvo(s.id);
+    c.history.push({ role: 'user', text: LOAD_INTRO + t }, { role: 'assistant', text: 'Rendben, átolvastam a korábbi beszélgetést. Folytathatjuk.' });
+    c.view.push({ role: 'note', text: note });
+  });
+  renderDeck();
+  toast('📂 Betöltve: ' + act.length + ' AI megkapta a beszélgetést.');
+});
+$('file').addEventListener('change', async e => { await addFiles(e.target.files); e.target.value = ''; });
+
+/* ============ Szolgáltatók ============ */
+async function httpError(res) {
+  let msg = '';
+  try { const j = await res.json(); msg = (j.error && (j.error.message || j.error)) || j.message || JSON.stringify(j).slice(0, 300); }
+  catch (e) { msg = res.statusText || ''; }
+  if (typeof msg !== 'string') msg = JSON.stringify(msg).slice(0, 300);
+  const err = new Error('HTTP ' + res.status + ': ' + msg);
+  err.status = res.status;
+  return err;
+}
+const tokStr = (a, b) => (a != null ? a : '?') + ' → ' + (b != null ? b : '?') + ' token';
+const byNewest = (a, b) => b.localeCompare(a, 'en', { numeric: true });
+function cleanSources(list) {
+  const seen = new Set(), out = [];
+  (list || []).forEach(x => {
+    const url = x && String(x.url || ''); if (!/^https?:\/\//i.test(url) || seen.has(url)) return;
+    seen.add(url);
+    let title = String((x.title || '')).trim();
+    if (!title) { try { title = new URL(url).hostname; } catch (e) { title = url; } }
+    out.push({ title: title.slice(0, 140), url });
+  });
+  return out.slice(0, 12);
+}
+const searchNote = n => n ? '🌐 ' + n + ' keresés' : '';
+const RESP_ONLY = /(^|-)pro($|-)|codex/;   // a -pro és -codex modellek csak a Responses API-n érhetők el
+
+async function callOpenAI(slot, hist, t, sys, signal) {
+  const key = S.keys.openai; if (!key) throw new Error('Hiányzik az OpenAI API-kulcs (⚙ Beállítások).');
+  if (t.search || RESP_ONLY.test(slot.model)) return openaiResponses(slot, hist, t, sys, signal, key);
+  try { return await openaiChat(slot, hist, t, sys, signal, key); }
+  catch (e) {
+    if (e.status === 404 && /v1\/responses/.test(e.message)) return openaiResponses(slot, hist, t, sys, signal, key);
+    throw e;
+  }
+}
+async function openaiChat(slot, hist, t, sys, signal, key) {
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  let content = t.fullText;
+  if (imgs.length || pdfs.length) {
+    content = [{ type: 'text', text: t.fullText }]
+      .concat(imgs.map(f => ({ type: 'image_url', image_url: { url: 'data:' + f.mime + ';base64,' + f.b64 } })))
+      .concat(pdfs.map(f => ({ type: 'file', file: { filename: f.name, file_data: 'data:application/pdf;base64,' + f.b64 } })));
+  }
+  const body = { model: slot.model, messages: [{ role: 'system', content: sys }].concat(hist.map(h => ({ role: h.role, content: h.text })), [{ role: 'user', content }]) };
+  const res = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), ch = d.choices && d.choices[0], u = d.usage || {};
+  return { text: (ch && ch.message && (ch.message.content || ch.message.refusal)) || '', usage: tokStr(u.prompt_tokens, u.completion_tokens), tin: u.prompt_tokens, tout: u.completion_tokens, note: ch && ch.finish_reason === 'length' ? 'a válasz elérte a hosszkorlátot' : '' };
+}
+async function openaiResponses(slot, hist, t, sys, signal, key) {
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  const parts = [{ type: 'input_text', text: t.fullText }]
+    .concat(imgs.map(f => ({ type: 'input_image', image_url: 'data:' + f.mime + ';base64,' + f.b64 })))
+    .concat(pdfs.map(f => ({ type: 'input_file', filename: f.name, file_data: 'data:application/pdf;base64,' + f.b64 })));
+  const body = { model: slot.model, instructions: sys, input: hist.map(h => ({ role: h.role, content: h.text })).concat([{ role: 'user', content: parts }]) };
+  if (t.search) body.tools = [{ type: 'web_search' }];
+  const res = await fetch('https://api.openai.com/v1/responses', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), u = d.usage || {};
+  const text = (d.output || []).filter(o => o.type === 'message').reduce((a, o) => a.concat(o.content || []), [])
+    .map(c => c.type === 'output_text' ? c.text : c.type === 'refusal' ? c.refusal : '').join('');
+  const notes = [];
+  if (d.status === 'incomplete') notes.push('félbeszakadt: ' + ((d.incomplete_details && d.incomplete_details.reason) || 'ismeretlen ok'));
+  const out = d.output || [];
+  const nSearch = out.filter(o => o.type === 'web_search_call').length;
+  if (t.search) notes.push(nSearch ? searchNote(nSearch) : 'nem keresett a weben');
+  const sources = cleanSources(out.filter(o => o.type === 'message').reduce((a, o) => a.concat(o.content || []), [])
+    .reduce((a, c) => a.concat(c.annotations || []), []).filter(an => an.type === 'url_citation'));
+  return { text, usage: tokStr(u.input_tokens, u.output_tokens), tin: u.input_tokens, tout: u.output_tokens, note: notes.join(' · '), sources };
+}
+
+async function callAnthropic(slot, hist, t, sys, signal) {
+  const key = S.keys.anthropic; if (!key) throw new Error('Hiányzik az Anthropic (Claude) API-kulcs (⚙ Beállítások).');
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  const content = imgs.map(f => ({ type: 'image', source: { type: 'base64', media_type: f.mime, data: f.b64 } }))
+    .concat(pdfs.map(f => ({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.b64 } })))
+    .concat([{ type: 'text', text: t.fullText }]);
+  let msgs = hist.map(h => ({ role: h.role, content: h.text })).concat([{ role: 'user', content }]);
+  const body = { model: slot.model, max_tokens: Math.max(S.maxTokens || 4096, EFF_MIN_TOKENS[S.effort] || 0), system: sys, messages: msgs };
+  if (S.effort && S.effort !== 'auto') body.output_config = { effort: S.effort };
+  if (t.search) body.tools = [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }];
+  let text = '', tin = 0, tout = 0, nSearch = 0, last = null, found = [];
+  for (let round = 0; round < 4; round++) {     // pause_turn: a hosszú keresési kört folytatni kell
+    body.messages = msgs;
+    const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify(body) });
+    if (!res.ok) throw await httpError(res);
+    const d = await res.json(), u = d.usage || {}, blocks = d.content || [];
+    last = d; tin += u.input_tokens || 0; tout += u.output_tokens || 0;
+    nSearch += (u.server_tool_use && u.server_tool_use.web_search_requests) || 0;
+    text += blocks.filter(p => p.type === 'text').map(p => p.text).join('');
+    blocks.forEach(p => {
+      if (p.type === 'web_search_tool_result' && Array.isArray(p.content)) found = found.concat(p.content.filter(r => r.type === 'web_search_result'));
+      if (p.type === 'text' && Array.isArray(p.citations)) found = found.concat(p.citations.filter(c => c.url));
+    });
+    if (d.stop_reason === 'pause_turn') { msgs = msgs.concat([{ role: 'assistant', content: blocks }]); continue; }
+    break;
+  }
+  const notes = [];
+  if (last.stop_reason === 'max_tokens') notes.push('a válasz elérte a max. hosszt (⚙-ben emelhető)');
+  if (last.stop_reason === 'pause_turn') notes.push('a keresés félbeszakadt, a válasz hiányos lehet');
+  if (S.effort && S.effort !== 'auto') notes.push('effort: ' + S.effort);
+  if (t.search) notes.push(nSearch ? searchNote(nSearch) : 'nem keresett a weben');
+  return { text, usage: tokStr(tin, tout), tin, tout, fee: nSearch * 0.01, note: notes.join(' · '), sources: cleanSources(found) };
+}
+
+async function callGemini(slot, hist, t, sys, signal) {
+  const key = S.keys.gemini; if (!key) throw new Error('Hiányzik a Gemini API-kulcs (⚙ Beállítások).');
+  const model = slot.model.replace(/^models\//, '').replace(/^gemini\//, '');
+  const parts = [{ text: t.fullText }].concat(t.files.filter(f => f.kind === 'image' || f.kind === 'pdf').map(f => ({ inline_data: { mime_type: f.mime, data: f.b64 } })));
+  const body = {
+    system_instruction: { parts: [{ text: sys }] },
+    contents: hist.map(h => ({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.text }] })).concat([{ role: 'user', parts }])
+  };
+  if (t.search) body.tools = [{ google_search: {} }];
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify(body) });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), c = d.candidates && d.candidates[0], u = d.usageMetadata || {};
+  if (!c) throw new Error('Nincs válasz' + (d.promptFeedback && d.promptFeedback.blockReason ? ' (blokkolva: ' + d.promptFeedback.blockReason + ')' : '') + '.');
+  const text = ((c.content && c.content.parts) || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
+  const notes = [];
+  if (c.finishReason && c.finishReason !== 'STOP') notes.push('befejezés oka: ' + c.finishReason);
+  const gm = c.groundingMetadata || {};
+  if (t.search) notes.push((gm.webSearchQueries || []).length ? searchNote(gm.webSearchQueries.length) : 'nem keresett a weben');
+  const sources = cleanSources((gm.groundingChunks || []).map(g => g.web && { url: g.web.uri, title: g.web.title }).filter(Boolean));
+  const gOut = (u.candidatesTokenCount || 0) + (u.thoughtsTokenCount || 0);
+  const gIn = (u.promptTokenCount || 0) + (u.toolUsePromptTokenCount || 0);   // a webkeresés találatai külön számlálóban vannak, de bemenetként számolódnak
+  return { text, usage: tokStr(gIn, gOut), tin: gIn, tout: gOut, note: notes.join(' · '), sources };
+}
+
+async function callMeta(slot, hist, t, sys, signal) {
+  const key = S.keys.meta; if (!key) throw new Error('Hiányzik a Meta API-kulcs (⚙ Beállítások).');
+  if (t.search) return metaResponses(slot, hist, t, sys, signal, key);   // a webkeresés a Meta-nál csak a Responses API-n érhető el
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  let content = t.fullText;
+  if (imgs.length) content = [{ type: 'text', text: t.fullText }].concat(imgs.map(f => ({ type: 'image_url', image_url: { url: 'data:' + f.mime + ';base64,' + f.b64 } })));
+  const body = {
+    model: slot.model,
+    messages: [{ role: 'developer', content: sys }].concat(hist.map(h => ({ role: h.role, content: h.text })), [{ role: 'user', content }]),
+    max_completion_tokens: Math.max(S.maxTokens || 4096, 8192)   // a gondolkodó tokenek is beleszámítanak a korlátba
+  };
+  let res;
+  try { res = await fetch('https://api.meta.ai/v1/chat/completions', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) }); }
+  catch (e) {
+    if ((e && e.name === 'AbortError') || /ISO-8859-1|non ISO|Invalid character|invalid header|Headers/i.test(String((e && e.message) || ''))) throw e;
+    throw new Error('A Meta API-t nem érte el a böngésző. Lehet, hogy nincs internet / reklámszűrő blokkolja, vagy a Meta szervere nem engedi a közvetlen böngészős hívást (CORS). A pontos hibát a böngésző konzolja (F12) mutatja.');
+  }
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), ch = d.choices && d.choices[0], u = d.usage || {};
+  let text = (ch && ch.message && ch.message.content) || '';
+  if (Array.isArray(text)) text = text.map(p => (p && p.text) || '').join('');
+  const notes = [];
+  if (ch && ch.finish_reason === 'length') notes.push('a válasz elérte a hosszkorlátot');
+  if (pdfs.length) notes.push('a PDF-et a Meta-nak nem küldtem el');
+  return { text, usage: tokStr(u.prompt_tokens, u.completion_tokens), tin: u.prompt_tokens, tout: u.completion_tokens, note: notes.join(' · ') };
+}
+
+async function metaResponses(slot, hist, t, sys, signal, key) {
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  const parts = [{ type: 'input_text', text: t.fullText }].concat(imgs.map(f => ({ type: 'input_image', image_url: 'data:' + f.mime + ';base64,' + f.b64 })));
+  const body = {
+    model: slot.model, instructions: sys,
+    input: hist.map(h => ({ role: h.role, content: h.text })).concat([{ role: 'user', content: parts }]),
+    tools: [{ type: 'web_search' }],
+    max_output_tokens: Math.max(S.maxTokens || 4096, 8192)
+  };
+  let res;
+  try { res = await fetch('https://api.meta.ai/v1/responses', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) }); }
+  catch (e) {
+    if ((e && e.name === 'AbortError') || /ISO-8859-1|non ISO|Invalid character|invalid header|Headers/i.test(String((e && e.message) || ''))) throw e;
+    throw new Error('A Meta API-t nem érte el a böngésző (hálózat / reklámszűrő / CORS). A pontos hibát a böngésző konzolja (F12) mutatja.');
+  }
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), u = d.usage || {}, out = d.output || [];
+  const msgs = out.filter(o => o.type === 'message').reduce((a, o) => a.concat(o.content || []), []);
+  const text = msgs.map(c => c.type === 'output_text' ? c.text : c.type === 'refusal' ? c.refusal : '').join('');
+  const notes = [];
+  if (d.status === 'incomplete') notes.push('félbeszakadt: ' + ((d.incomplete_details && d.incomplete_details.reason) || 'ismeretlen ok'));
+  const nSearch = out.filter(o => o.type === 'web_search_call').length;
+  notes.push(nSearch ? searchNote(nSearch) : 'nem keresett a weben');
+  if (pdfs.length) notes.push('a PDF-et a Meta-nak nem küldtem el');
+  const sources = cleanSources(msgs.reduce((a, c) => a.concat(c.annotations || []), []).filter(an => an.type === 'url_citation'));
+  return { text, usage: tokStr(u.input_tokens, u.output_tokens), tin: u.input_tokens, tout: u.output_tokens, note: notes.join(' · '), sources };
+}
+
+/* ---- xAI (Grok): OpenAI-kompatibilis; sima kérdésnél Chat Completions, webkeresésnél Responses API ---- */
+const grokCost = u => (u && typeof u.cost_in_usd_ticks === 'number' && isFinite(u.cost_in_usd_ticks)) ? u.cost_in_usd_ticks / 1e10 : undefined;   // 1 USD = 10^10 tick
+const GROK_NET_ERR = 'Az xAI API-t nem érte el a böngésző (hálózat / reklámszűrő / CORS). A pontos hibát a böngésző konzolja (F12) mutatja.';
+const isNetBlock = e => !((e && e.name === 'AbortError') || /ISO-8859-1|non ISO|Invalid character|invalid header|Headers/i.test(String((e && e.message) || '')));
+async function callGrok(slot, hist, t, sys, signal) {
+  const key = S.keys.xai; if (!key) throw new Error('Hiányzik az xAI (Grok) API-kulcs (⚙ Beállítások).');
+  if (t.search) return grokResponses(slot, hist, t, sys, signal, key);
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  let content = t.fullText;
+  if (imgs.length) content = [{ type: 'text', text: t.fullText }].concat(imgs.map(f => ({ type: 'image_url', image_url: { url: 'data:' + f.mime + ';base64,' + f.b64 } })));
+  const body = {
+    model: slot.model,
+    messages: [{ role: 'system', content: sys }].concat(hist.map(h => ({ role: h.role, content: h.text })), [{ role: 'user', content }]),
+    max_completion_tokens: Math.max(S.maxTokens || 4096, 8192)   // a gondolkodó tokenek is beleszámítanak a korlátba
+  };
+  let res;
+  try { res = await fetch('https://api.x.ai/v1/chat/completions', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) }); }
+  catch (e) { if (isNetBlock(e)) throw new Error(GROK_NET_ERR); throw e; }
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), ch = d.choices && d.choices[0], u = d.usage || {};
+  let text = (ch && ch.message && (ch.message.content || ch.message.refusal)) || '';
+  if (Array.isArray(text)) text = text.map(p => (p && p.text) || '').join('');
+  const tout = Math.max(u.completion_tokens || 0, (u.total_tokens || 0) - (u.prompt_tokens || 0));   // a gondolkodás tokenjei is benne vannak
+  const notes = [];
+  if (ch && ch.finish_reason === 'length') notes.push('a válasz elérte a hosszkorlátot');
+  if (pdfs.length) notes.push('a PDF-et a Grok-nak nem küldtem el');
+  return { text, usage: tokStr(u.prompt_tokens, tout), tin: u.prompt_tokens, tout, cost: grokCost(u), note: notes.join(' · ') };
+}
+async function grokResponses(slot, hist, t, sys, signal, key) {
+  const imgs = t.files.filter(f => f.kind === 'image'), pdfs = t.files.filter(f => f.kind === 'pdf');
+  const parts = [{ type: 'input_text', text: t.fullText }].concat(imgs.map(f => ({ type: 'input_image', image_url: 'data:' + f.mime + ';base64,' + f.b64 })));
+  const body = {
+    model: slot.model, instructions: sys,
+    input: hist.map(h => ({ role: h.role, content: h.text })).concat([{ role: 'user', content: parts }]),
+    tools: [{ type: 'web_search' }],
+    store: false,
+    max_output_tokens: Math.max(S.maxTokens || 4096, 8192)
+  };
+  let res;
+  try { res = await fetch('https://api.x.ai/v1/responses', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key }, body: JSON.stringify(body) }); }
+  catch (e) { if (isNetBlock(e)) throw new Error(GROK_NET_ERR); throw e; }
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json(), u = d.usage || {}, out = d.output || [];
+  const msgs = out.filter(o => o.type === 'message').reduce((a, o) => a.concat(o.content || []), []);
+  const text = msgs.map(c => c.type === 'output_text' ? c.text : c.type === 'refusal' ? c.refusal : '').join('');
+  const notes = [];
+  if (d.status === 'incomplete') notes.push('félbeszakadt: ' + ((d.incomplete_details && d.incomplete_details.reason) || 'ismeretlen ok'));
+  const nSearch = out.filter(o => o.type === 'web_search_call' || (/_call$/.test(o.type || '') && /search/.test((o.type || '') + (o.name || '')))).length;
+  notes.push(nSearch ? searchNote(nSearch) : 'nem keresett a weben');
+  if (pdfs.length) notes.push('a PDF-et a Grok-nak nem küldtem el');
+  const cites = msgs.reduce((a, c) => a.concat(c.annotations || []), []).filter(an => an.type === 'url_citation')
+    .map(an => ({ url: an.url, title: /^\d+$/.test(String(an.title || '').trim()) ? '' : an.title }));   // az xAI a címek helyén csak sorszámot ad: ilyenkor a webhely neve látszik
+  const tout = Math.max(u.output_tokens || 0, (u.total_tokens || 0) - (u.input_tokens || 0));
+  return { text, usage: tokStr(u.input_tokens, tout), tin: u.input_tokens, tout, cost: grokCost(u), note: notes.join(' · '), sources: cleanSources(cites) };
+}
+
+// A lekérdezett listákból kiszűrjük, ami nem szöveges csevegésre való (hang, kép, keresés, robotika stb.)
+async function listOpenAI(key) {
+  const res = await fetch('https://api.openai.com/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json();
+  return (d.data || []).map(m => m.id)
+    .filter(id => /^(gpt|o\d|chatgpt)/.test(id))
+    .filter(id => !/(embedding|tts|whisper|audio|realtime|transcribe|image|moderation|instruct|search|live)/.test(id))
+    .filter(id => !/-\d{4}-\d{2}-\d{2}$/.test(id))
+    .sort((a, b) => (/^gpt/.test(b) - /^gpt/.test(a)) || byNewest(a, b));
+}
+async function listAnthropic(key) {
+  const res = await fetch('https://api.anthropic.com/v1/models?limit=1000', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' } });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json();
+  return (d.data || []).map(m => m.id);
+}
+async function listGemini(key) {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { headers: { 'x-goog-api-key': key } });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json();
+  return (d.models || []).filter(m => /gemini/.test(m.name) && (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => m.name.replace(/^models\//, ''))
+    .filter(id => !/(tts|image|transcribe|robotics|computer-use|nano-banana|embedding|native-audio|live)/.test(id))
+    .sort(byNewest);
+}
+
+async function listMeta(key) {
+  const res = await fetch('https://api.meta.ai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json();
+  return (d.data || []).map(m => m.id).filter(id => /^muse-(spark|wonder)/.test(id) && !/contributor/.test(id)).sort(byNewest);   // a "contributor" módban a Meta tanításra használja a tartalmat, ezért nem ajánljuk
+}
+
+async function listGrok(key) {
+  const res = await fetch('https://api.x.ai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+  if (!res.ok) throw await httpError(res);
+  const d = await res.json();
+  return (d.data || []).map(m => m.id).filter(id => /^grok-/.test(id) && !/(imagine|image|video|voice|tts|stt|transcri|embedding|vision)/.test(id)).sort(byNewest);
+}
+
+function friendlyError(e) {
+  if (e && e.name === 'AbortError') return 'Megszakítva.';
+  if (e instanceof TypeError || (e && e.name === 'TypeError')) {
+    const m = String(e.message || '');
+    if (/ISO-8859-1|non ISO|Invalid character|invalid header|Headers/i.test(m)) return 'Az API-kulcsban érvénytelen (láthatatlan) karakter van. Másold be újra a kulcsot. (' + m + ')';
+    return 'Hálózati hiba: nincs internet, vagy a böngésző / reklámszűrő / privát DNS letiltotta a kérést. (' + (m || 'TypeError') + ')';
+  }
+  return (e && e.message) || String(e);
+}
+
+/* ============ Küldés ============ */
+async function runSlot(slot, turn) {
+  const c = getConvo(slot.id);
+  const eff = Object.assign({}, slot, { model: modelOf(slot) });
+  const sys = (MODES[S.mode] || MODES['Gyors']) + (S.teacher ? '\n\n' + TEACH_SYS : '') + (S.about && S.about.trim() ? '\n\nTudnivalók a felhasználóról (vedd figyelembe a válaszadáskor): ' + S.about.trim() : '') + (turn.search ? SEARCH_HINT : '');   // a küldéskor érvényes modell
+  c.view.push({ role: 'user', text: turn.prompt, files: turn.names });
+  c.view.push({ role: 'wait' });
+  paintBody(slot.id);
+  const ctrl = new AbortController(); controllers.push(ctrl);
+  const t0 = performance.now();
+  let res = { ok: false };
+  try {
+    const r = await PROVIDERS[slot.provider].call(eff, c.history, turn, sys, ctrl.signal);
+    c.view = c.view.filter(v => v.role !== 'wait');
+    const sec = ((performance.now() - t0) / 1000).toFixed(1);
+    c.view.push({ role: 'ai', model: eff.model, sources: r.sources || [], text: r.text || '(üres válasz)', meta: eff.model + ' · ' + r.usage + ' · ' + sec + ' mp · ' + track(slot.provider, eff.model, r) + (r.note ? ' · ' + r.note : '') });
+    c.history.push({ role: 'user', text: turn.prompt + turn.note }, { role: 'assistant', text: r.text });
+    res = { ok: true, label: PROVIDERS[slot.provider].label, model: eff.model, text: r.text || '' };
+  } catch (e) {
+    c.view = c.view.filter(v => v.role !== 'wait');
+    res.why = friendlyError(e);
+    c.view.push({ role: 'err', text: '[' + eff.model + '] ' + res.why });
+  }
+  if (turn.prog) {
+    const it = turn.prog.items.find(x => x.id === slot.id);
+    if (it) { it.state = res.ok ? 'ok' : 'err'; it.why = res.why || ''; it.sec = ((performance.now() - t0) / 1000).toFixed(1); }
+    paintBody('sum');
+  }
+  paintBody(slot.id);
+  return res;
+}
+async function runSummary(turn, oks) {
+  const c = getConvo('sum'), P = S.sumAI, eff = { provider: P.provider, model: P.model }, pg = turn.prog;
+  if (pg) pg.sum = 'wait'; else c.view.push({ role: 'user', text: turn.prompt, files: turn.names });
+  paintBody('sum');
+  const fullText = 'Kérdés:\n' + turn.prompt + '\n\n' + oks.map(a => '=== ' + a.label + ' (' + a.model + ') válasza ===\n' + a.text.slice(0, 12000)).join('\n\n');
+  const sturn = { prompt: turn.prompt, fullText, files: [], names: [], note: '', search: false };
+  const ctrl = new AbortController(); controllers.push(ctrl);
+  const t0 = performance.now();
+  try {
+    const r = await PROVIDERS[P.provider].call(eff, [], sturn, SUM_SYS, ctrl.signal);
+    if (pg) pg.sum = 'done';
+    const sec = ((performance.now() - t0) / 1000).toFixed(1);
+    c.view.push({ role: 'ai', model: P.model, sources: [], text: r.text || '(üres válasz)', meta: P.model + ' · ' + r.usage + ' · ' + sec + ' mp · ' + track(P.provider, P.model, r) + (r.note ? ' · ' + r.note : '') });
+  } catch (e) {
+    if (pg) pg.sum = 'err';
+    c.view.push({ role: 'err', text: '[' + P.model + '] ' + friendlyError(e) });
+  }
+  paintBody('sum');
+}
+function setSendBtn() {
+  const b = $('bSend');
+  b.textContent = busy ? 'Leállít' : 'Küldés';
+  b.classList.toggle('stop', busy);
+}
+async function send() {
+  if (busy) { controllers.forEach(c => c.abort()); return; }
+  const text = $('inp').value.trim();
+  if (!text && !attachments.length) return;
+  const act = S.slots.filter(s => s.active && !skip.has(s.id));
+  if (!act.length) { toast(S.slots.some(s => s.active) ? 'Minden AI ki van pipálva, jelölj ki legalább egyet.' : 'Nincs aktív ablak (⚙ Beállítások).'); return; }
+  if (asking) return;
+  if (lockActive() && S.tier === 'strong') {
+    rollDay();
+    if (usedUp()) {
+      asking = true;
+      const ok = await askPin('Elfogyott a mai ' + S.lock.limit + ' erős kérdés. A PIN-nel még ' + S.lock.limit + ' kérdést oldasz fel.');
+      asking = false;
+      if (!ok) return;
+      S.usage.unlocks++;
+    }
+    S.usage.n++; saveSettings();
+  }
+  const files = attachments.slice();
+  const prompt = text || 'Mit tartalmaz a csatolt fájl? Röviden foglald össze.';
+  const fullText = prompt + files.filter(f => f.kind === 'text').map(f => '\n\n--- ' + f.name + ' ---\n' + f.text).join('');
+  const names = files.map(f => f.name);
+  const turn = { prompt, fullText, files, names, search: !!S.search, note: names.length ? '\n[Csatolva: ' + names.join(', ') + ']' : '' };
+  if (micWant) micStop(); spkStop();
+  $('inp').value = ''; autoGrow(); attachments = []; renderAtts();
+  if (S.sum && act.length >= 2) {
+    turn.prog = { role: 'prog', items: act.map(s => ({ id: s.id, label: PROVIDERS[s.provider].label, state: 'wait', sec: '' })), sum: 'idle' };
+    getConvo('sum').view.push({ role: 'user', text: prompt, files: names }, turn.prog);
+    paintBody('sum');
+  }
+  busy = true; controllers = []; setSendBtn();
+  const results = await Promise.allSettled(act.map(s => runSlot(s, turn)));
+  if (S.sum) {
+    const oks = results.map(r => r.value).filter(v => v && v.ok && v.text);
+    if (oks.length >= 2) await runSummary(turn, oks);
+    else {
+      if (turn.prog) { turn.prog.sum = 'skip'; paintBody('sum'); }
+      if (act.length >= 2) toast('Összefoglaló kihagyva: legalább két sikeres válasz kell.');
+    }
+  }
+  busy = false; setSendBtn();
+}
+function updateModeBtn() {
+  const b = $('bMode'); b.textContent = MODE_ICON[S.mode]; b.setAttribute('aria-label', 'Mód: ' + S.mode); b.className = 'modebtn ' + MODE_CLS[S.mode];
+  b.title = 'Mód: ' + S.mode + ' (' + MODE_INFO[S.mode] + ') – koppints a váltáshoz';
+  document.querySelectorAll('.pmode').forEach(e => { e.textContent = S.mode; });
+}
+$('bMode').addEventListener('click', () => {
+  const ks = Object.keys(MODES); S.mode = ks[(ks.indexOf(S.mode) + 1) % ks.length];
+  saveSettings(); updateModeBtn(); toast(MODE_ICON[S.mode] + ' ' + S.mode + ': ' + MODE_INFO[S.mode]);
+});
+function updateTeachBtn() { $('bTeach').classList.toggle('on', !!S.teacher); $('bTeach').title = S.teacher ? 'Tanár mód BE – kikapcsolás' : 'Tanár mód KI – bekapcsolás (lépésenként, kérdésekkel vezet)'; }
+$('bTeach').addEventListener('click', () => {
+  S.teacher = !S.teacher; saveSettings(); updateTeachBtn();
+  toast(S.teacher ? '🎓 Tanár mód BE: lépésenként, kérdésekkel vezet, nem adja meg azonnal a megoldást.' : '🎓 Tanár mód KI');
+});
+function updateEffBtn() {
+  const i = EFFORTS.findIndex(x => x[0] === S.effort), b = $('bEff');
+  b.innerHTML = '🎚' + (i > 0 ? '<i class="bd">' + i + '</i>' : '');
+  b.classList.toggle('on', i > 0);
+  b.title = 'Claude effort: ' + EFFORTS[Math.max(i, 0)][1] + ' – koppints a váltáshoz';
+}
+function renderEffList() {
+  $('effList').innerHTML = EFFORTS.map(x => '<button type="button" class="effopt' + (x[0] === S.effort ? ' sel' : '') + '" data-v="' + x[0] + '">' + esc(x[1]) + '<small>' + esc(x[2]) + '</small></button>').join('');
+}
+$('bEff').addEventListener('click', () => { renderEffList(); $('effDlg').showModal(); });
+$('effClose').addEventListener('click', () => $('effDlg').close());
+$('effList').addEventListener('click', e => {
+  const b = e.target.closest('.effopt'); if (!b) return;
+  S.effort = b.dataset.v; saveSettings(); updateEffBtn(); $('effDlg').close();
+  toast('🎚 Claude effort: ' + EFFORTS.find(x => x[0] === S.effort)[1]);
+});
+function updateWebBtn() { $('bWeb').classList.toggle('on', !!S.search); $('bWeb').title = S.search ? 'Webes keresés BE – kikapcsolás' : 'Webes keresés KI – bekapcsolás'; }
+$('bWeb').addEventListener('click', () => {
+  S.search = !S.search; saveSettings(); updateWebBtn();
+  toast(S.search ? '🌐 Webes keresés BE: a következő kérdésnél minden AI kereshet (keresésenként külön díj lehet).' : '🌐 Webes keresés KI');
+});
+function autoGrow() { const t = $('inp'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140) + 'px'; }
+$('inp').addEventListener('input', autoGrow);
+
+/* ============ Diktálás és felolvasás (a böngésző beépített magyar hangjával) ============ */
+const SPEECH_LANG = 'hu-HU';
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, micWant = false, micBase = '', micFinal = '';
+function micUI(on) { $('bMic').classList.toggle('on', on); $('bMic').textContent = on ? '⏹' : '🎤'; }
+function micStop() { micWant = false; if (rec) { try { rec.stop(); } catch (e) {} } micUI(false); }
+function micStart() {
+  if (!SR) { toast('Ez a böngésző nem tud beépítetten diktálni. Használd a billentyűzet 🎤 gombját.'); return; }
+  spkStop();
+  const inp = $('inp');
+  micWant = true; micUI(true);
+  const run = () => {
+    micBase = inp.value && !/\s$/.test(inp.value) ? inp.value + ' ' : inp.value; micFinal = '';
+    rec = new SR(); rec.lang = SPEECH_LANG; rec.continuous = false; rec.interimResults = true; rec.maxAlternatives = 1;
+    rec.onresult = ev => {
+      let fin = '', tmp = '';
+      for (let i = 0; i < ev.results.length; i++) { const r = ev.results[i]; if (r.isFinal) fin += r[0].transcript; else tmp += r[0].transcript; }
+      inp.value = micBase + fin + tmp; autoGrow();
+    };
+    rec.onerror = ev => {
+      const e = ev && ev.error;
+      if (e === 'no-speech' || e === 'aborted') return;
+      micWant = false; micUI(false);
+      if (e === 'not-allowed') toast('A mikrofon nincs engedélyezve ennél az oldalnál (a böngésző lakat ikonjánál engedélyezhető).');
+      else if (e === 'service-not-allowed' || e === 'network' || e === 'language-not-supported') toast('Ebben a böngészőben nem működik a beépített diktálás (Chrome-ban igen). Használd a billentyűzet 🎤 gombját.');
+      else toast('Diktálási hiba: ' + (e || 'ismeretlen'));
+    };
+    rec.onend = () => {
+      inp.value = inp.value.replace(/\s+$/, '') + (inp.value.trim() ? ' ' : ''); autoGrow();
+      if (micWant) { try { run(); } catch (e) { micStop(); } } else micUI(false);
+    };
+    rec.start();
+  };
+  try { run(); } catch (e) { micStop(); toast('A diktálás nem indult el.'); }
+}
+$('bMic').addEventListener('click', () => { if (micWant) micStop(); else micStart(); });
+
+const hasTTS = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+let spkOn = false;
+function spkUI(on) { spkOn = on; $('bSpk').classList.toggle('on', on); $('bSpk').textContent = on ? '⏹' : '🔊'; }
+function spkStop() { if (hasTTS) { try { speechSynthesis.cancel(); } catch (e) {} } spkUI(false); }
+function speakable(md) {
+  return String(md || '')
+    .replace(/```[\s\S]*?```/g, ' (kódrészlet) ')
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/^\s*\|?[\s:|-]{3,}\|?\s*$/gm, ' ')
+    .replace(/^\s*\|/gm, '').replace(/\|\s*$/gm, '')
+    .replace(/\|/g, ', ')
+    .replace(/^\s{0,3}#{1,6}\s*/gm, '')
+    .replace(/^\s*[-*•]\s+/gm, '')
+    .replace(/[*_~>#]+/g, '')
+    .replace(/[ \t]+/g, ' ').replace(/\n{2,}/g, '\n').trim();
+}
+function speechChunks(t, max = 180) {
+  const out = []; let cur = '';
+  for (const part of t.split(/(?<=[.!?…:;\n])\s*/)) {
+    if (!part) continue;
+    if ((cur + ' ' + part).length > max && cur) { out.push(cur); cur = part; } else cur = cur ? cur + ' ' + part : part;
+    while (cur.length > max * 1.6) { const k = cur.lastIndexOf(' ', max); const cut = k > 20 ? k : max; out.push(cur.slice(0, cut)); cur = cur.slice(cut).trim(); }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function spkStart() {
+  if (!hasTTS) { toast('Ez a böngésző nem tud felolvasni.'); return; }
+  const id = curPanelId(); if (id == null) return;
+  const last = [...getConvo(id).view].reverse().find(v => v.role === 'ai');
+  if (!last || !last.text) { toast('Ebben az ablakban még nincs válasz.'); return; }
+  const chunks = speechChunks(speakable(last.text)); if (!chunks.length) return;
+  if (micWant) micStop();
+  try { speechSynthesis.cancel(); } catch (e) {}
+  const voices = (speechSynthesis.getVoices && speechSynthesis.getVoices()) || [];
+  const hu = voices.find(v => /^hu/i.test(v.lang));
+  if (voices.length && !hu) toast('Nincs magyar hang a telefonon, ezért a felolvasás idegenül szólhat (Android: Beállítások › Szövegfelolvasó).');
+  spkUI(true);
+  chunks.forEach((c, i) => {
+    const u = new SpeechSynthesisUtterance(c); u.lang = SPEECH_LANG; if (hu) u.voice = hu; u.rate = 1;
+    if (i === chunks.length - 1) { u.onend = () => spkUI(false); u.onerror = () => spkUI(false); }
+    else u.onerror = () => spkUI(false);
+    speechSynthesis.speak(u);
+  });
+}
+$('bSpk').addEventListener('click', () => { if (spkOn) spkStop(); else spkStart(); });
+window.addEventListener('pagehide', () => { spkStop(); micStop(); });
+$('inp').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.shiftKey) return;
+  if (matchMedia('(pointer:fine)').matches || e.ctrlKey || e.metaKey) { e.preventDefault(); if (!busy) send(); }
+});
+$('bSend').addEventListener('click', send);
+
+/* ============ Felső gombok ============ */
+$('bTheme').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  S.theme = cur === 'light' ? 'dark' : 'light'; saveSettings(); applyTheme();
+});
+$('bClear').addEventListener('click', () => {
+  if (busy) { toast('Várd meg a válaszokat, vagy nyomd meg a Leállít gombot.'); return; }
+  if (!confirm('Új beszélgetés indul, minden ablak előzménye törlődik. Folytassam?')) return;
+  Object.keys(convo).forEach(k => delete convo[k]); skip.clear(); renderDeck();
+});
+$('bExp').addEventListener('click', () => {
+  const now = new Date(), pad = n => String(n).padStart(2, '0');
+  const stamp = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+  let out = '';
+  [{ label: 'Összefoglaló (' + S.sumAI.model + ')', id: 'sum' }].concat(S.slots.filter(s => s.active).map(s => ({ label: PROVIDERS[s.provider].label + ' (' + S.mode + ')', id: s.id }))).forEach(it => {
+    const v = getConvo(it.id).view.filter(x => x.role === 'user' || x.role === 'ai' || x.role === 'err');
+    if (!v.length) return;
+    out += 'DÁTUM: ' + stamp + '\nMI: ' + it.label + '\n\n';
+    v.forEach(x => { out += (x.role === 'user' ? 'KÉRDÉS:\n' : x.role === 'ai' ? 'VÁLASZ' + (x.model ? ' (' + x.model + ')' : '') + ':\n' : 'HIBA:\n') + x.text + '\n' + (x.sources && x.sources.length ? '\nFORRÁSOK:\n' + x.sources.map(z => '- ' + z.title + ': ' + z.url).join('\n') + '\n' : '') + '\n'; });
+    out += '='.repeat(70) + '\n\n';
+  });
+  if (!out) { toast('Még nincs mit menteni.'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([out], { type: 'text/plain;charset=utf-8' }));
+  a.download = 'Mentett_Beszelgetesek_' + now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + '_' + pad(now.getHours()) + '-' + pad(now.getMinutes()) + '-' + pad(now.getSeconds()) + '.txt';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+/* ============ Beállítások ablak ============ */
+let draft = null;
+const dlg = $('dlg');
+
+function modelOptions(provider, current) {
+  const set = new Set([].concat(PROVIDERS[provider].suggest, draft.models[provider] || []));
+  if (current) set.add(current);
+  return Array.from(set);
+}
+function modelSelect(field, s) {
+  const cur = s.models[field];
+  const opts = modelOptions(s.provider, cur).map(m => '<option value="' + esc(m) + '"' + (m === cur ? ' selected' : '') + '>' + esc(m) + '</option>').join('');
+  return '<span class="mlbl">' + TIERS[field].icon + ' ' + TIERS[field].label + ' modell</span><select data-f="' + field + '">' + opts + '<option value="__custom">✎ Egyéni modellnév…</option></select>';
+}
+function renderSpendInfo() {
+  const sp = draft.spend, n = new Date(), p = x => String(x).padStart(2, '0');
+  const d = sp.day === dayKey() ? sp.d : 0, m = sp.month === n.getFullYear() + '-' + p(n.getMonth() + 1) ? sp.m : 0;
+  $('spendInfo').textContent = 'Becsült költés: ma ' + usd(d) + ', ebben a hónapban ' + usd(m) + '.';
+}
+function renderLockInfo() {
+  const d = draft.usage.day === dayKey() ? draft.usage : { n: 0, unlocks: 0 };
+  $('pinState').textContent = draft.lock.hash ? '✔ PIN be van állítva.' : 'Nincs PIN, ezért a zár nem aktív.';
+  $('useInfo').textContent = 'Ma felhasznált erős kérdések: ' + d.n + ' / ' + (draft.lock.limit * (1 + d.unlocks));
+}
+function renderSum() {
+  const a = draft.sumAI;
+  const opts = modelOptions(a.provider, a.model).map(m => '<option value="' + esc(m) + '"' + (m === a.model ? ' selected' : '') + '>' + esc(m) + '</option>').join('');
+  $('sumBox').innerHTML = '<select data-f="sumProvider">' + Object.keys(PROVIDERS).map(k => '<option value="' + k + '"' + (k === a.provider ? ' selected' : '') + '>' + esc(PROVIDERS[k].label) + '</option>').join('') + '</select>' +
+    '<span class="mlbl">Modell</span><select data-f="sumModel">' + opts + '<option value="__custom">✎ Egyéni modellnév…</option></select>';
+}
+function renderRows() {
+  $('rows').innerHTML = draft.slots.map((s, i) =>
+    '<div class="srow" data-i="' + i + '"><div class="sline"><label class="chk"><input type="checkbox" data-f="active"' + (s.active ? ' checked' : '') + '> ' + (i + 1) + '. ablak aktív</label>' +
+    '<button type="button" class="mv" data-mv="' + i + ':-1" title="Feljebb"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+    '<button type="button" class="mv" data-mv="' + i + ':1" title="Lejjebb"' + (i === draft.slots.length - 1 ? ' disabled' : '') + '>▼</button>' +
+    '<button type="button" class="danger" data-del="' + i + '">Törlés</button></div>' +
+    '<select data-f="provider">' + Object.keys(PROVIDERS).map(k => '<option value="' + k + '"' + (k === s.provider ? ' selected' : '') + '>' + esc(PROVIDERS[k].label) + '</option>').join('') + '</select>' +
+    modelSelect('strong', s) + modelSelect('cheap', s) +
+    '</div>').join('');
+}
+function openSettings() {
+  draft = JSON.parse(JSON.stringify(S));
+  $('dlgBody').innerHTML = '<h2>Beállítások</h2>' +
+    '<p class="note">Az API-kulcsok csak ebben a böngészőben (helyi tárolóban) maradnak, a kódban nincsenek. Minden eszközön külön kell megadni őket. A szolgáltatóknál érdemes költséghatárt beállítani.</p>' +
+    Object.keys(PROVIDERS).map(k => '<label class="fld"><span>' + esc(PROVIDERS[k].keyLabel) + '</span><div class="inl"><input type="password" id="key-' + k + '" autocomplete="off" spellcheck="false" value="' + esc(draft.keys[k] || '') + '"><button type="button" class="ic" data-show="' + k + '">👁</button></div></label>').join('') +
+    '<label class="fld"><span>Rólam / egyéni utasítás (minden AI megkapja minden kérdésnél)</span><textarea id="about" rows="4" maxlength="2000" style="width:100%;background:var(--in);border:1px solid var(--line);border-radius:8px;padding:7px 9px;resize:vertical" placeholder="Pl.: Norbi vagyok, magyarul válaszolj, tömören és érthetően. Hobbi fejlesztő vagyok, Python és webes eszközök.">' + esc(draft.about || '') + '</textarea></label>' +
+    '<label class="fld"><span>Claude max. válaszhossz (token)</span><input type="number" id="maxTok" min="256" max="64000" step="256" value="' + (+draft.maxTokens || 4096) + '"></label>' +
+    '<h3>🔒 Gyerekzár</h3><p class="note">Az erős (💪) modellekkel naponta ennyi kérdést lehet feltenni, utána PIN kell, amivel újabb ennyi kérdés oldható fel. Ha van PIN, a ⚙ Beállítások is csak PIN-nel nyílik meg. Elfelejtett PIN-hez nincs visszaállítás: az oldal adatainak törlése megoldja, de a kulcsokat is törli. A védelem csak ebben a böngészőben él, a szolgáltatónál érdemes költséghatárt is beállítani.</p>' +
+    '<label class="fld"><span>Napi erős kérdések száma (0 = nincs limit)</span><input type="number" id="lim" min="0" max="999" step="1" value="' + (draft.lock.limit | 0) + '"></label>' +
+    '<label class="fld"><span>Új PIN (4 számjegy; üresen hagyva marad a régi)</span><input type="password" id="newPin" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="····"></label>' +
+    '<p class="note" id="pinState"></p><p class="note" id="useInfo"></p>' +
+    '<div class="inl"><button type="button" id="pinDel" class="danger">PIN törlése</button><button type="button" id="useReset">Mai számláló nullázása</button></div>' +
+    '<h3>💵 Költség és egyenleg</h3><p class="note">A válaszok mellé kiírt dollár a tokenszámból és az árakból számolt becslés (a keresés és a kép díját csak részben tartalmazza). Az egyenleg-becslő az itt megadott összegből vonja le a költségeket. A valódi egyenleget a szolgáltató oldalán nézd meg, és ha eltér, itt javítsd ki. Üresen hagyva nem követi. A GPT-6 árak nem hivatalos forrásból valók, ellenőrizd őket.</p><p class="note" id="spendInfo"></p>' +
+    Object.keys(PROVIDERS).map(k => '<label class="fld"><span>' + esc(PROVIDERS[k].label) + ' egyenleg (USD)</span><input type="text" inputmode="decimal" id="bal-' + k + '" data-orig="' + (typeof draft.bal[k] === 'number' ? comma(draft.bal[k].toFixed(2)) : '') + '" value="' + (typeof draft.bal[k] === 'number' ? comma(draft.bal[k].toFixed(2)) : '') + '" placeholder="pl. 12,50"></label>').join('') +
+    '<label class="fld"><span>Egyéni árak (soronként: modell = bemenet / kimenet, USD / 1 millió token)</span><textarea id="prices" rows="3" style="width:100%;background:var(--in);border:1px solid var(--line);border-radius:8px;padding:7px 9px;resize:vertical" placeholder="pl. gpt-6-luna = 0,10 / 0,50">' + esc(Object.keys(draft.prices).map(k => k + ' = ' + comma(draft.prices[k][0]) + ' / ' + comma(draft.prices[k][1])).join('\n')) + '</textarea></label>' +
+    '<div class="inl"><button type="button" id="spendReset">Napi és havi összeg nullázása</button></div>' +
+    '<h3>Összefoglaló AI</h3><p class="note">Ez foglalja össze a válaszok közös részeit és különbségeit (legalább két válasz kell hozzá). A főképernyőn a 📝 gombbal kapcsolható be és ki. Az első ablakban jelenik meg.</p><div id="sumBox" class="sbox"></div>' +
+    '<h3>Ablakok</h3><p class="note">Mindegyik AI-nak két modellje van: 💪 erős és 💰 olcsó. A főképernyőn a bal felső gombbal váltasz köztük. A módot (⚡ Gyors / 🧠 Gondolkodó / 💻 Kódoló) a beírómező alatti gombbal állítod.</p><div id="rows"></div>' +
+    '<div class="inl"><button type="button" id="addSlot">+ Ablak</button><button type="button" id="fetchModels">🔄 Modellek lekérdezése</button></div>' +
+    '<div class="inl"><button type="button" id="clearKeys" class="danger">Kulcsok törlése</button></div>';
+  renderRows(); renderSum(); renderLockInfo(); renderSpendInfo();
+  dlg.showModal();
+}
+function readKeysFromInputs() {
+  Object.keys(PROVIDERS).forEach(k => { const el = $('key-' + k); if (el) draft.keys[k] = cleanKey(el.value); });
+  const ab = $('about'); if (ab) draft.about = ab.value.trim().slice(0, 2000);
+  const mt = parseInt($('maxTok').value, 10); draft.maxTokens = mt >= 256 ? mt : 4096;
+}
+dlg.addEventListener('change', e => {
+  const f = e.target.dataset && e.target.dataset.f; if (!f) return;
+  if (f === 'sumProvider') { draft.sumAI.provider = e.target.value; draft.sumAI.model = PROVIDERS[e.target.value].sum; renderSum(); return; }
+  if (f === 'sumModel') {
+    if (e.target.value === '__custom') { const n = (prompt('Add meg a pontos modellnevet:', draft.sumAI.model) || '').trim(); if (n) draft.sumAI.model = n; renderSum(); }
+    else draft.sumAI.model = e.target.value;
+    return;
+  }
+  const i = +e.target.closest('.srow').dataset.i, s = draft.slots[i];
+  if (f === 'active') s.active = e.target.checked;
+  else if (f === 'mode') s.mode = e.target.value;
+  else if (f === 'provider') { s.provider = e.target.value; s.models = { strong: PROVIDERS[s.provider].strong, cheap: PROVIDERS[s.provider].cheap }; renderRows(); }
+  else if (f === 'strong' || f === 'cheap') {
+    if (e.target.value === '__custom') { const n = (prompt('Add meg a pontos modellnevet:', s.models[f]) || '').trim(); if (n) s.models[f] = n; renderRows(); }
+    else s.models[f] = e.target.value;
+  }
+});
+dlg.addEventListener('click', async e => {
+  const t = e.target;
+  if (t.id === 'spendReset') { draft.spend = { day: dayKey(), d: 0, month: '', m: 0 }; renderSpendInfo(); return; }
+  if (t.id === 'pinDel') { draft.lock.hash = ''; draft.lock.salt = ''; draft.lock.fails = 0; draft.lock.until = 0; renderLockInfo(); return; }
+  if (t.id === 'useReset') { draft.usage = { day: dayKey(), n: 0, unlocks: 0 }; renderLockInfo(); return; }
+  if (t.dataset.show) { const el = $('key-' + t.dataset.show); el.type = el.type === 'password' ? 'text' : 'password'; return; }
+  if (t.dataset.mv) {
+    const [i, d] = t.dataset.mv.split(':').map(Number), j = i + d;
+    if (j < 0 || j >= draft.slots.length) return;
+    [draft.slots[i], draft.slots[j]] = [draft.slots[j], draft.slots[i]]; renderRows(); return;
+  }
+  if (t.dataset.del !== undefined) {
+    if (draft.slots.length <= 1) { toast('Legalább egy ablak maradjon.'); return; }
+    draft.slots.splice(+t.dataset.del, 1); renderRows(); return;
+  }
+  if (t.id === 'addSlot') {
+    if (draft.slots.length >= MAX_SLOTS) { toast('Legfeljebb ' + MAX_SLOTS + ' ablak lehet.'); return; }
+    draft.slots.push(slotDefault(draft.nextId++, 'gemini')); renderRows(); return;
+  }
+  if (t.id === 'clearKeys') {
+    if (!confirm('Törlöd az összes elmentett API-kulcsot erről az eszközről?')) return;
+    Object.keys(PROVIDERS).forEach(k => { draft.keys[k] = ''; $('key-' + k).value = ''; }); toast('A kulcsok törlődnek a Mentés után.'); return;
+  }
+  if (t.id === 'fetchModels') {
+    readKeysFromInputs();
+    t.disabled = true; t.textContent = 'Lekérdezés…';
+    const ok = [], bad = [];
+    await Promise.all(Object.keys(PROVIDERS).map(async k => {
+      if (!draft.keys[k]) return;
+      try { const l = await PROVIDERS[k].list(draft.keys[k]); if (l.length) { draft.models[k] = l; ok.push(PROVIDERS[k].label); } }
+      catch (err) { bad.push(PROVIDERS[k].label); }
+    }));
+    t.disabled = false; t.textContent = '🔄 Modellek lekérdezése';
+    renderRows(); renderSum();
+    toast((ok.length ? 'Betöltve: ' + ok.join(', ') + '. ' : '') + (bad.length ? 'Hiba: ' + bad.join(', ') + '.' : '') || 'Előbb adj meg legalább egy kulcsot.');
+  }
+});
+$('dCancel').addEventListener('click', () => dlg.close());
+$('dSave').addEventListener('click', async () => {
+  readKeysFromInputs();
+  const badKey = Object.keys(PROVIDERS).find(k => /[^\x21-\x7E]/.test(draft.keys[k] || ''));
+  if (badKey) { toast('A(z) ' + PROVIDERS[badKey].label + ' kulcsban ékezetes vagy furcsa karakter van. Másold be újra közvetlenül a szolgáltató oldaláról.'); return; }
+  draft.bal = Object.assign({}, S.bal);
+  for (const k of Object.keys(PROVIDERS)) {
+    const el = $('bal-' + k); if (!el || el.value === el.dataset.orig) continue;
+    const v = el.value.trim().replace(/\s/g, '').replace(',', '.');
+    if (!v) draft.bal[k] = null;
+    else if (isFinite(+v)) draft.bal[k] = +v;
+    else { toast('Az egyenleg szám legyen: ' + PROVIDERS[k].label); return; }
+  }
+  const prices = {};
+  for (const line of $('prices').value.split('\n')) {
+    if (!line.trim()) continue;
+    const m = line.match(/^\s*([\w.\-\/]+)\s*[=:]\s*([\d.,]+)\s*[\/;| ]\s*([\d.,]+)\s*$/);
+    if (!m) { toast('Hibás ársor: ' + line.trim()); return; }
+    prices[m[1].toLowerCase()] = [+m[2].replace(',', '.'), +m[3].replace(',', '.')];
+  }
+  draft.prices = prices;
+  const lim = parseInt($('lim').value, 10); draft.lock.limit = lim >= 0 ? Math.min(lim, 999) : 10;
+  const np = $('newPin').value.trim();
+  if (np) {
+    if (!/^\d{4}$/.test(np)) { toast('A PIN pontosan 4 számjegy legyen.'); return; }
+    draft.lock.salt = randSalt(); draft.lock.hash = await hashPin(np, draft.lock.salt); draft.lock.fails = 0; draft.lock.until = 0;
+  }
+  draft.slots.forEach(s => { const P = PROVIDERS[s.provider]; s.models.strong = s.models.strong || P.strong; s.models.cheap = s.models.cheap || P.cheap; });
+  S = draft; saveSettings(); dlg.close(); renderDeck(); updateTierBtn(); updateModeBtn(); updateTeachBtn(); updateEffBtn(); toast('Beállítások elmentve');
+});
+$('bSet').addEventListener('click', async () => {
+  if (lockActive() || (S.lock && S.lock.hash)) {
+    if (asking) return;
+    asking = true; const ok = await askPin('A beállítások PIN-kóddal nyílnak meg.'); asking = false;
+    if (!ok) return;
+  }
+  openSettings();
+});
+
+/* ============ Indulás ============ */
+$('bTier').addEventListener('click', () => {
+  if (busy) { toast('Várd meg a válaszokat, vagy nyomd meg a Leállít gombot.'); return; }
+  S.tier = S.tier === 'strong' ? 'cheap' : 'strong';
+  saveSettings(); updateLabels();
+  toast(TIERS[S.tier].icon + ' ' + TIERS[S.tier].label + ': ' + S.slots.filter(x => x.active).map(x => modelOf(x)).join(' · ') + lockInfo());
+});
+applyTheme();
+renderDeck();
+updateTierBtn();
+updateWebBtn();
+updateModeBtn();
+updateTeachBtn();
+updateEffBtn();
+if (!Object.keys(PROVIDERS).some(k => S.keys[k])) setTimeout(() => toast('Első lépés: ⚙ → API-kulcsok megadása'), 600);
+})();
+</script>
+</body>
+</html>

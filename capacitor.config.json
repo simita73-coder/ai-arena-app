@@ -1,0 +1,10 @@
+{
+  "appId": "hu.norbi.aiarena",
+  "appName": "AI-Aréna",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
